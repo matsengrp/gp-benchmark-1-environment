@@ -1,0 +1,11 @@
+
+execute DS4.n.nex;
+begin mrbayes;
+    set autoclose=yes nowarn=yes seed=106765079 swapseed=422701966;
+    lset nst=1 rates=equal;
+    prset statefreqpr=fixed(equal) topologypr=uniform brlenspr=unconstrained:uniform(0,1);
+    mcmcp nruns=1 nchains=4 ngen={{ngen}} samplefreq=1000 printfreq=10000 file=_ignore/ds4 diagnfreq=5;
+    mcmc;
+    sump burnin={{burnin}};
+    sumt burnin={{burnin}};
+end;
