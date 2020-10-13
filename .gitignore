@@ -4,6 +4,3 @@
 __pycache__/
 _ignore
 _output
-
-perf.data*
-cachegrind.out*
