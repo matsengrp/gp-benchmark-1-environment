@@ -24,4 +24,5 @@ def expand_mb_settings(settings_dict):
 
     if "burnin" not in settings_dict:
         settings_dict["burnin"] = math.floor(
-            settings_dict["ngen"] * settings_dict["burnin_frac"])
+            settings_dict["ngen"] * settings_dict["burnin_frac"]
+        )
