@@ -1,0 +1,12 @@
+{
+    "template": "basic.mb",
+    "nexus_alignment": "DS4.n.nex",
+    "output_prefix": "_ignore/ds4",
+    "nchains": 4,
+    "ngen": 1234,
+    "burnin_frac": 0.1,
+    "samplefreq": 1000,
+    "printfreq": 10000,
+    "seed": 42,
+    "swapseed": 0
+}
