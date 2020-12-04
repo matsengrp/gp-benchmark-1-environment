@@ -1,6 +1,6 @@
 {
     "template": "basic.mb",
-    "nexus_alignment": "test/data/DS4.n.nex",
+    "nexus_alignment_path": "test/data/DS4.n.nex",
     "output_prefix": "_ignore/ds4",
     "nchains": 4,
     "ngen": 1234,

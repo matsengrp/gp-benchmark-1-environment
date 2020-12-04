@@ -1,5 +1,12 @@
 # gp-benchmarking
 
+## Install
+
+    pip install -e .
+
+
+## Usage
+
 Example run:
 
     mkdir _ignore

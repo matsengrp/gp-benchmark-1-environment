@@ -1,5 +1,5 @@
 
-execute {{nexus_alignment}};
+execute {{nexus_alignment_path}};
 begin mrbayes;
     set autoclose=yes nowarn=yes seed=106765079 swapseed=422701966;
     lset nst=1 rates=equal;
