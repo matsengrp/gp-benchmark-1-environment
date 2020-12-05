@@ -3,8 +3,9 @@
 import json
 import click
 import click_config_file
-import gpb.templating as templating
+import gpb.compare
 import gpb.ourlibsbn as ourlibsbn
+import gpb.templating as templating
 
 
 def json_provider(file_path, cmd_name):
@@ -57,7 +58,26 @@ def fit(tree_path, fasta_path, out_csv_path, tol, max_iter):
 
     Tree file is assumed to be a Newick file unless the path ends with `.nexus`.
     """
-    ourlibsbn.fit(tree_path, fasta_path, out_csv_path, tol, max_iter)
+    ourlibsbn.gp_fit(tree_path, fasta_path, out_csv_path, tol, max_iter)
+
+
+@cli.command()
+@click.argument("newick_path", required=True, type=click.Path(exists=True))
+@click.argument("out_csv_path", required=True, type=click.Path())
+def sa(newick_path, out_csv_path):  # pylint: disable=invalid-name
+    """Fit an SBN using simple average (SA) training.
+    """
+    ourlibsbn.simple_average(newick_path, out_csv_path)
+
+
+@cli.command()
+@click.argument("gp_csv", required=True, type=click.Path(exists=True))
+@click.argument("sa_csv", required=True, type=click.Path(exists=True))
+@click.argument("out_prefix", required=True, type=click.Path())
+def compare(gp_csv, sa_csv, out_prefix):
+    """Compare parameters between GP and SA.
+    """
+    gpb.compare.compare_parameters(gp_csv, sa_csv, out_prefix)
 
 
 if __name__ == "__main__":

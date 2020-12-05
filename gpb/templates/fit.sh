@@ -1,10 +1,7 @@
 set -eux
 
 trap "rm -f mmap.dat" EXIT
+
 gpb fit --config {{config_path}} rerooted-topologies.noburnin.nwk {{output_prefix}}.fasta gp-sbn-parameters.csv
-
-# Train via SBN-SA and put in sa-sbn-params.csv
-# python train-sbn-sa.py
-#
-# python plot.py
-
+gpb sa rerooted-topologies.noburnin.nwk sa-sbn-parameters.csv
+gpb compare gp-sbn-parameters.csv sa-sbn-parameters.csv comparison
