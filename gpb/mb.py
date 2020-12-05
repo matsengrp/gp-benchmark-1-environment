@@ -21,7 +21,7 @@ def generate_mb_input(settings_dict, dest_path):
 
 def expand_mb_settings(settings_dict):
     """
-    Expand settings in a settings dictionary to the full suite of things expected by MB.
+    Expand settings in a settings dictionary to the full suite of things we want for MB.
     """
 
     if "burnin" not in settings_dict:
@@ -29,10 +29,15 @@ def expand_mb_settings(settings_dict):
             settings_dict["ngen"] * settings_dict["burnin_frac"]
         )
 
+    if "burnin_samples" not in settings_dict:
+        settings_dict["burnin_samples"] = math.ceil(
+            settings_dict["burnin"] / settings_dict["samplefreq"]
+        )
+
 
 def make_paths_absolute(settings_dict):
     """
-    Make the value of any key that ends with `_path` and abosolute path.
+    Make the value of any key that ends with `_path` and absolute path.
     """
 
     for key, value in settings_dict.items():
