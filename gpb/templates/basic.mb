@@ -1,7 +1,7 @@
 
 execute {{nexus_alignment_path}};
 begin mrbayes;
-    set autoclose=yes nowarn=yes seed=106765079 swapseed=422701966;
+    set autoclose=yes nowarn=yes seed={{seed}} swapseed={{swapseed}};
     lset nst=1 rates=equal;
     prset statefreqpr=fixed(equal) topologypr=uniform brlenspr=unconstrained:uniform(0,1);
     mcmcp nruns=1 nchains={{nchains}} ngen={{ngen}} samplefreq={{samplefreq}} printfreq={{printfreq}} diagnfreq={{printfreq}} file={{output_prefix}};

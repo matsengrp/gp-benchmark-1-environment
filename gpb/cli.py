@@ -39,10 +39,19 @@ def cli():
 @click.argument("template_name", required=True)
 @click.argument("settings_json", required=True, type=click.Path(exists=True))
 @click.argument("dest_path", required=True, type=click.Path(exists=False))
-def template(template_name, settings_json, dest_path):
+@click.option("--make-paths-absolute", is_flag=True, help="Make paths absolute.")
+@click.option("--mb", is_flag=True, help="Perform MB-specific parameter expansion.")
+def template(template_name, settings_json, dest_path, make_paths_absolute, mb):
     """Generate a file using one of our templates and the settings."""
     with open(settings_json, "r") as file:
         settings_dict = json.load(file)
+
+    if make_paths_absolute:
+        templating.expand_mb_settings(settings_dict)
+
+    if mb:
+        templating.make_paths_absolute(settings_dict)
+
     templating.template_file(template_name, settings_dict, dest_path)
 
 

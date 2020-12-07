@@ -12,8 +12,6 @@ def template_file(template_name, settings_dict, dest_path):
     env = Environment(
         loader=PackageLoader("gpb", "templates"), undefined=StrictUndefined
     )
-    expand_mb_settings(settings_dict)
-    make_paths_absolute(settings_dict)
     template = env.get_template(template_name)
     with open(dest_path, "w") as file_obj:
         file_obj.write(template.render(**settings_dict) + "\n")
