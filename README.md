@@ -1,5 +1,15 @@
-# gp-benchmarking
+# gp-benchmarking-1-environment
 
-Example run:
+## Dependencies
 
-    gpb mbfile test/data/example-settings.json _ignore/out.mb
+We assume that this will be run in the [libsbn](https://github.com/phylovi/libsbn) Conda environment.
+
+Python dependencies will be installed via pip with the command below.
+We also require:
+
+* [Newick utilities](http://cegg.unige.ch/newick_utils)
+
+
+## Install
+
+    pip install -e .
