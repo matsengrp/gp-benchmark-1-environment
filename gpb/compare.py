@@ -23,7 +23,7 @@ def compare_parameters(gp_csv, sa_csv, out_prefix):
     df.to_csv(out_prefix + ".csv", index=False)
 
     correlation = df.corr().at[gp_name, sa_name]
-    print(correlation)
+    print("correlation:" + correlation)
     corr_df = pd.DataFrame({"dataset": [out_prefix], "correlation": [correlation]})
     corr_df.to_csv("correlation.csv", index=False)
 

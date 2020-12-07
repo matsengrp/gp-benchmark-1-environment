@@ -56,26 +56,22 @@ def template(template_name, settings_json, dest_path, make_paths_absolute, mb):
 
 
 @cli.command()
-@click.argument("tree_path", required=True, type=click.Path(exists=True))
+@click.argument("newick_path", required=True, type=click.Path(exists=True))
 @click.argument("fasta_path", required=True, type=click.Path(exists=True))
 @click.argument("out_csv_path", required=True, type=click.Path())
 @click.option("--tol", type=float, default=1e-2)
 @click.option("--max-iter", type=int, default=10)
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
-def fit(tree_path, fasta_path, out_csv_path, tol, max_iter):
-    """Fit an SBN using generalized pruning.
-
-    Tree file is assumed to be a Newick file unless the path ends with `.nexus`.
-    """
-    ourlibsbn.gp_fit(tree_path, fasta_path, out_csv_path, tol, max_iter)
+def fit(newick_path, fasta_path, out_csv_path, tol, max_iter):
+    """Fit an SBN using generalized pruning."""
+    ourlibsbn.gp_fit(newick_path, fasta_path, out_csv_path, tol, max_iter)
 
 
 @cli.command()
 @click.argument("newick_path", required=True, type=click.Path(exists=True))
 @click.argument("out_csv_path", required=True, type=click.Path())
 def sa(newick_path, out_csv_path):  # pylint: disable=invalid-name
-    """Fit an SBN using simple average (SA) training.
-    """
+    """Fit an SBN using simple average (SA) training."""
     ourlibsbn.simple_average(newick_path, out_csv_path)
 
 
@@ -84,8 +80,7 @@ def sa(newick_path, out_csv_path):  # pylint: disable=invalid-name
 @click.argument("sa_csv", required=True, type=click.Path(exists=True))
 @click.argument("out_prefix", required=True, type=click.Path())
 def compare(gp_csv, sa_csv, out_prefix):
-    """Compare parameters between GP and SA.
-    """
+    """Compare parameters between GP and SA."""
     gpb.compare.compare_parameters(gp_csv, sa_csv, out_prefix)
 
 
