@@ -1,14 +1,13 @@
-# gp-benchmarking
+# gp-benchmarking-1-environment
+
+## Dependencies
+
+Python dependencies will be installed via pip with the command below.
+We also require:
+
+* [Newick utilities](http://cegg.unige.ch/newick_utils)
+
 
 ## Install
 
     pip install -e .
-
-
-## Usage
-
-Example run:
-
-    mkdir _ignore
-    gpb mbfile test/data/example-settings.json _ignore/out.mb
-    mb _ignore/out.mb
