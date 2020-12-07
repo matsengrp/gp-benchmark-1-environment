@@ -6,9 +6,7 @@ from jinja2 import Environment, PackageLoader, StrictUndefined
 
 
 def template_file(template_name, settings_dict, dest_path):
-    """
-    Build from a template.
-    """
+    """Build from a template."""
     env = Environment(
         loader=PackageLoader("gpb", "templates"), undefined=StrictUndefined
     )
@@ -18,9 +16,8 @@ def template_file(template_name, settings_dict, dest_path):
 
 
 def expand_mb_settings(settings_dict):
-    """
-    Expand settings in a settings dictionary to the full suite of things we want for MB.
-    """
+    """Expand settings in a settings dictionary to the full suite of things we
+    want for MB."""
 
     if "burnin" not in settings_dict:
         settings_dict["burnin"] = math.floor(
@@ -34,9 +31,7 @@ def expand_mb_settings(settings_dict):
 
 
 def make_paths_absolute(settings_dict):
-    """
-    Make the value of any key that ends with `_path` and absolute path.
-    """
+    """Make the value of any key that ends with `_path` and absolute path."""
 
     for key, value in settings_dict.items():
         if key.endswith("_path"):

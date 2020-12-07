@@ -1,6 +1,4 @@
-"""
-Functions to compare parameter fits.
-"""
+"""Functions to compare parameter fits."""
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -10,9 +8,7 @@ sns.set_context("poster")
 
 
 def compare_parameters(gp_csv, sa_csv, out_prefix):
-    """
-    Compare parameters between GP and SA.
-    """
+    """Compare parameters between GP and SA."""
     gp_name = "GP probability"
     sa_name = "SA probability"
     gp_df = pd.read_csv(gp_csv, names=["gpcsp", gp_name])
