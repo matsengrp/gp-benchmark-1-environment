@@ -1,4 +1,4 @@
-# gp-benchmarking-1-environment
+# gp-benchmark-1-environment
 
 ## Dependencies
 
