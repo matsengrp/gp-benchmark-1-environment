@@ -9,7 +9,7 @@ RUN conda install -c bioconda newick_utils
 
 RUN git clone --recurse-submodules https://github.com/phylovi/libsbn.git
 WORKDIR /libsbn
-RUN git checkout d7a67de7322d36357f5b465c4de47eb3acb5c532
+RUN git checkout 04ee68371638830e4d7302a214a72e350d3c8b63
 RUN make -j 20 test
 
 COPY . /gp-benchmark-1-environment
