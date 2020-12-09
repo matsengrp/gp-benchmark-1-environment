@@ -11,10 +11,10 @@ setup(
     scripts=glob.glob("gpb/scripts/*.sh"),
     entry_points={"console_scripts": ["gpb=gpb.cli:cli"]},
     install_requires=[
-        "dendropy",
+        "click_config_file",
+        "csvkit",
         "jinja2",
-        "plotnine==0.6.0",
-        "pylint",
-        "pytest",
+        "seaborn",
+        "seqmagick",
     ],
 )
