@@ -14,7 +14,6 @@ setup(
         "click_config_file",
         "csvkit",
         "jinja2",
-        "pygtrie",
         "seaborn",
         "seqmagick",
     ],

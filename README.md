@@ -7,7 +7,10 @@ We assume that this will be run in the [libsbn](https://github.com/phylovi/libsb
 Python dependencies will be installed via pip with the command below.
 We also require:
 
+* [MrBayes](https://nbisweden.github.io/MrBayes/index.html)
 * [Newick utilities](http://cegg.unige.ch/newick_utils)
+
+Please see Dockerfile for complete information.
 
 
 ## Install

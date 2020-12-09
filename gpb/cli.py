@@ -31,7 +31,7 @@ def json_provider(file_path, cmd_name):
     invoke_without_command=True,
 )
 def cli():
-    """Entrypoint."""
+    """Top-level CLI for subcommands."""
     pass  # pylint: disable=unnecessary-pass
 
 
