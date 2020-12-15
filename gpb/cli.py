@@ -84,5 +84,14 @@ def compare(gp_csv, sa_csv, out_prefix):
     gpb.compare.compare_parameters(gp_csv, sa_csv, out_prefix)
 
 
+@cli.command()
+@click.argument("newick_path", required=True, type=click.Path(exists=True))
+@click.argument("sbn_parameter_csv", required=True, type=click.Path(exists=True))
+@click.argument("out_csv_path", required=True, type=click.Path())
+def treeprob(newick_path, sbn_parameter_csv, out_csv_path):
+    """Calculate probabilities of the currently loaded trees and spit to CSV."""
+    ourlibsbn.tree_probability(newick_path, sbn_parameter_csv, out_csv_path)
+
+
 if __name__ == "__main__":
     cli()  # pylint: disable=no-value-for-parameter
