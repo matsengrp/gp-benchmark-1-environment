@@ -7,6 +7,25 @@ import seaborn as sns
 sns.set_context("poster")
 
 
+def taxon_set_of_str_bitset(bitset):
+    """Make the 1-indexed taxon set from a string bitset."""
+    return {index + 1 for index, value in enumerate(bitset) if value == '1'}
+
+
+def indexed_pcsp_of_bitset_pcsp(pcsp_str):
+    """Make a string representation of a PCSP described in 1-indexed form."""
+    [sister, focal, child1] = [taxon_set_of_str_bitset(bitset) for bitset in pcsp_str.split("|")]
+    return str(((sister, focal), (set(sorted(focal - child1)), child1)))
+
+
+def indexed_gpcsp_of_bitset_gpcsp(gpcsp_str):
+    """Make a string representation of a GPCSP described in 1-indexed form."""
+    if "|" in gpcsp_str:
+        return indexed_pcsp_of_bitset_pcsp(gpcsp_str)
+    # else:
+    return str(taxon_set_of_str_bitset(gpcsp_str))
+
+
 def compare_parameters(gp_csv, sa_csv, out_prefix):
     """Compare parameters between GP and SA."""
     gp_name = "GP probability"
@@ -16,6 +35,12 @@ def compare_parameters(gp_csv, sa_csv, out_prefix):
     df = pd.merge(gp_df, sa_df)
     # GP should have all of the SA GPCSPs, and also the fake ones.
     assert len(df) == len(sa_df)
+
+    df["gpcsp"] = df["gpcsp"].apply(indexed_gpcsp_of_bitset_gpcsp)
+    df["delta"] = df[sa_name] - df[gp_name]
+    df = df[["delta", gp_name, sa_name, "gpcsp"]]
+    # Drop rows where GP and SA both have them as 1.
+    df = df[(df[gp_name] < 1.) | (df[sa_name] < 1.)]
     df.to_csv(out_prefix + ".csv", index=False)
 
     correlation = df.corr().at[gp_name, sa_name]
