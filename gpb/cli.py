@@ -69,10 +69,11 @@ def fit(newick_path, fasta_path, out_csv_path, tol, max_iter):
 
 @cli.command()
 @click.argument("newick_path", required=True, type=click.Path(exists=True))
-@click.argument("out_csv_path", required=True, type=click.Path())
-def sa(newick_path, out_csv_path):  # pylint: disable=invalid-name
-    """Fit an SBN using simple average (SA) training."""
-    ourlibsbn.simple_average(newick_path, out_csv_path)
+@click.argument("out_csv_prefix", required=True, type=click.Path())
+def sa(newick_path, out_csv_prefix):  # pylint: disable=invalid-name
+    """Fit an SBN using simple average (SA) training and spit the SBN parameters
+    to CSV, as well as the unconditional subsplit probabilities to `.subsplit.csv`."""
+    ourlibsbn.simple_average(newick_path, out_csv_prefix)
 
 
 @cli.command()
