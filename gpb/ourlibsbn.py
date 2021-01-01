@@ -67,3 +67,27 @@ def tree_marginal(newick_glob, fasta_path, out_csv_path):
     df = pd.DataFrame({"prefixes": prefixes, "marginals": marginals})
     df.sort_values(df.columns.values.tolist(), inplace=True)
     df.to_csv(out_csv_path, index=False)
+
+
+def export_trees_with_subsplits(newick_path, fasta_path, pcsp_csv_path, tol, max_iter):
+    """Fit a GP with the given sequences and trees, then for every given PCSP export the
+    trees from `newick_path` with the GP branch lengths to `_ignore/trees/...`.
+
+    We supply the PCSPs as the first column of the given CSV of PCSPs (typically the SBN
+    parameters from a run of GP).
+    """
+    inst = libsbn.gp_instance("mmap.dat")
+    inst.read_fasta_file(fasta_path)
+    inst.read_newick_file(newick_path)
+    inst.make_engine()
+    inst.print_status()
+    inst.estimate_branch_lengths(tol, max_iter)
+
+    sbn_df = pd.read_csv(pcsp_csv_path)
+
+    for gpcsp in sbn_df.iloc[:, 0]:
+        if "|" in gpcsp:
+            pcsp_collapsed = gpcsp.replace("|", "")
+            inst.export_trees_with_a_pcsp(
+                pcsp_collapsed, f"_ignore/trees/{pcsp_collapsed}.nwk"
+            )

@@ -98,7 +98,11 @@ def compare_parameters(gp_csv, sa_csv, sa_subsplit_csv, out_prefix):
     corr_df.to_csv("correlation.csv", index=False)
 
     ax = sns.scatterplot(
-        x=sa_name, y=gp_name, size=parent_probability_name, data=df, alpha=0.2
+        x=sa_name,
+        y=gp_name,
+        # If you want parent probability, add `size=parent_probability_name` here
+        data=df,
+        alpha=0.2,
     )
     ax.set_aspect(1)
     ax.set(ylim=ax.get_xlim())

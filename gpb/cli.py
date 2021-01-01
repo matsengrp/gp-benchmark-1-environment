@@ -105,5 +105,21 @@ def treemarginal(newick_glob, fasta_path, out_csv_path):
     ourlibsbn.tree_marginal(newick_glob, fasta_path, out_csv_path)
 
 
+@cli.command()
+@click.argument("newick_path", required=True, type=click.Path(exists=True))
+@click.argument("fasta_path", required=True, type=click.Path(exists=True))
+@click.argument("pcsp_csv_path", required=True, type=click.Path(exists=True))
+@click.option("--tol", type=float, default=1e-2)
+@click.option("--max-iter", type=int, default=10)
+@click_config_file.configuration_option(
+    implicit=False, cmd_name="fit", provider=json_provider
+)
+def treeexport(newick_path, fasta_path, pcsp_csv_path, tol, max_iter):
+    """Export trees with GP branch lengths for each supplied PCSP."""
+    ourlibsbn.export_trees_with_subsplits(
+        newick_path, fasta_path, pcsp_csv_path, tol, max_iter
+    )
+
+
 if __name__ == "__main__":
     cli()  # pylint: disable=no-value-for-parameter
