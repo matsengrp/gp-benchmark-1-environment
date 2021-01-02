@@ -121,5 +121,15 @@ def treeexport(newick_path, fasta_path, pcsp_csv_path, tol, max_iter):
     )
 
 
+@cli.command()
+@click.argument("direct_marginals_csv", required=True, type=click.Path(exists=True))
+@click.argument("prior_csv", required=True, type=click.Path(exists=True))
+@click.argument("sa_csv", required=True, type=click.Path(exists=True))
+@click.argument("out_prefix", required=True, type=click.Path())
+def comparedirect(direct_marginals_csv, prior_csv, sa_csv, out_prefix):
+    """Compare to the "direct" marginal likelihoods for estimating SBN parameters."""
+    gpb.compare.compare_to_direct(direct_marginals_csv, prior_csv, sa_csv, out_prefix)
+
+
 if __name__ == "__main__":
     cli()  # pylint: disable=no-value-for-parameter

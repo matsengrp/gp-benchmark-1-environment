@@ -1,8 +1,11 @@
 """Functions to compare parameter fits."""
 
 import matplotlib.pyplot as plt
+import numpy as np
+import os
 import pandas as pd
 import seaborn as sns
+from scipy.special import logsumexp
 
 sns.set_context("poster")
 
@@ -21,10 +24,11 @@ def indexed_pcsp_of_bitset_pcsp(pcsp_str):
 
 
 def indexed_gpcsp_of_bitset_gpcsp(gpcsp_str):
-    """Make a string representation of a GPCSP described in 1-indexed form."""
+    """Make a string representation of a pretty GPCSP described in 1-indexed form."""
     if "|" in gpcsp_str:
         return indexed_pcsp_of_bitset_pcsp(gpcsp_str)
     # else:
+    # We have a rootsplit.
     return str(taxon_set_of_str_bitset(gpcsp_str))
 
 
@@ -108,4 +112,45 @@ def compare_parameters(gp_csv, sa_csv, sa_subsplit_csv, out_prefix):
     ax.set(ylim=ax.get_xlim())
     sns.despine()
     plt.legend([], [], frameon=False)
+    plt.savefig(out_prefix + ".svg", bbox_inches="tight")
+
+
+def compare_to_direct(direct_marginals_csv, prior_csv, sa_csv, out_prefix):
+    """Compare SBN parameters estimated using the "direct" method to those from SA.
+
+    The "direct" method here means the Bayes rule estimate using marginal likelihoods
+    from just taking the mean from the trees (using GP branch lengths) found in the MB
+    posterior sample.
+    """
+    direct_name = "Direct probability"
+    sa_name = "SA probability"
+    prior_df = pd.read_csv(prior_csv, names=["gpcsp", "prior"])
+    df = pd.read_csv(direct_marginals_csv)
+    gpcsp_count = len(df)
+    df["gpcsp"] = df["gpcsp"].apply(pretty_gpcsp_of_string)
+    df = pd.merge(df, prior_df)
+    assert len(df) == gpcsp_count
+    df["log_prior"] = df["prior"].apply(np.log)
+    df["upost"] = df["marginal"] + df["log_prior"]
+    df["parent"] = df.gpcsp.apply(parent_bitset_of_gpcsp)
+    upost_sums = (
+        df.groupby(["parent"])["upost"]
+        .agg(logsumexp)
+        .reset_index()
+        .rename(columns={"upost": "upost_sum"})
+    )
+    df = pd.merge(upost_sums, df)
+    assert len(df) == gpcsp_count
+    df[direct_name] = (df["upost"] - df["upost_sum"]).apply(np.exp)
+    sa_df = pd.read_csv(sa_csv, names=["gpcsp", sa_name])
+    df = pd.merge(df, sa_df)
+    assert len(df) == gpcsp_count
+    df = df[(df[direct_name] < 1.0) | (df[sa_name] < 1.0)]
+    print(df.corr().at[direct_name, sa_name])
+    df.to_csv(out_prefix + ".csv", index=False)
+
+    ax = sns.scatterplot(x=sa_name, y=direct_name, data=df, alpha=0.2)
+    ax.set_aspect(1)
+    ax.set(ylim=ax.get_xlim())
+    sns.despine()
     plt.savefig(out_prefix + ".svg", bbox_inches="tight")

@@ -19,6 +19,7 @@ def gp_fit(newick_path, fasta_path, out_csv_prefix, tol, max_iter):
     inst.estimate_sbn_parameters()
     inst.sbn_parameters_to_csv(out_csv_prefix + ".sbn.csv")
     inst.branch_lengths_to_csv(out_csv_prefix + ".bl.csv")
+    inst.sbn_prior_to_csv(out_csv_prefix + ".prior.csv")
 
 
 def simple_average(newick_path, out_csv_prefix):
@@ -59,12 +60,13 @@ def tree_marginal(newick_glob, fasta_path, out_csv_path):
     """Directly estimate the marginal log likelihood for trees supplied in a file for
     each file in the supplied Newick path glob."""
     paths = glob.glob(newick_glob)
+    assert paths
     marginals = [
         marginal_across_newick_trees(newick_path, fasta_path) for newick_path in paths
     ]
     prefixes = [os.path.basename(path).split(".")[0] for path in paths]
 
-    df = pd.DataFrame({"prefixes": prefixes, "marginals": marginals})
+    df = pd.DataFrame({"gpcsp": prefixes, "marginal": marginals})
     df.sort_values(df.columns.values.tolist(), inplace=True)
     df.to_csv(out_csv_path, index=False)
 
