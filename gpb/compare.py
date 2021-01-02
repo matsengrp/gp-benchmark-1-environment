@@ -2,7 +2,6 @@
 
 import matplotlib.pyplot as plt
 import numpy as np
-import os
 import pandas as pd
 import seaborn as sns
 from scipy.special import logsumexp
@@ -146,7 +145,12 @@ def compare_to_direct(direct_marginals_csv, prior_csv, sa_csv, out_prefix):
     df = pd.merge(df, sa_df)
     assert len(df) == gpcsp_count
     df = df[(df[direct_name] < 1.0) | (df[sa_name] < 1.0)]
-    print(df.corr().at[direct_name, sa_name])
+    correlation = df.corr().at[direct_name, sa_name]
+    print(f"direct correlation: {correlation}")
+    corr_df = pd.DataFrame(
+        {"dataset": [out_prefix], "direct_correlation": [correlation]}
+    )
+    corr_df.to_csv("direct-correlation.csv", index=False)
     df.to_csv(out_prefix + ".csv", index=False)
 
     ax = sns.scatterplot(x=sa_name, y=direct_name, data=df, alpha=0.2)

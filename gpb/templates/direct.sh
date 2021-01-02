@@ -1,3 +1,7 @@
+set -eu
+
+trap "rm -f mmap.dat" EXIT
+
 mkdir -p _ignore/trees
 gpb treeexport --config config.json rerooted-topologies.noburnin.nonsingletons.nwk {{output_prefix}}.fasta gp.sbn.csv
 
@@ -9,4 +13,4 @@ for i in _ignore/trees/*.nwk; do
 done
 
 gpb treemarginal "_ignore/trees/*.deroot.nwk" {{output_prefix}}.fasta pcsp-marginals.csv
-gpb comparedirect pcsp-marginals.csv gp.prior.csv sa-sbn-parameters.csv direct.sbn
+gpb comparedirect pcsp-marginals.csv gp.prior.csv sa.sbn.csv direct.sbn
