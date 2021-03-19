@@ -16,6 +16,7 @@ def gp_fit(newick_path, fasta_path, out_csv_prefix, tol, max_iter):
     inst.make_engine()
     inst.print_status()
     inst.estimate_branch_lengths(tol, max_iter)
+    inst.calculate_hybrid_marginals()
     inst.estimate_sbn_parameters()
     inst.sbn_parameters_to_csv(out_csv_prefix + ".sbn.csv")
     inst.branch_lengths_to_csv(out_csv_prefix + ".bl.csv")
