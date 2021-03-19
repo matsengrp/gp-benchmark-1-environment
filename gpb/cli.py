@@ -58,30 +58,77 @@ def template(template_name, settings_json, dest_path, make_paths_absolute, mb):
 @cli.command()
 @click.argument("newick_path", required=True, type=click.Path(exists=True))
 @click.argument("fasta_path", required=True, type=click.Path(exists=True))
-@click.argument("out_csv_path", required=True, type=click.Path())
+@click.argument("out_csv_prefix", required=True, type=click.Path())
 @click.option("--tol", type=float, default=1e-2)
 @click.option("--max-iter", type=int, default=10)
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
-def fit(newick_path, fasta_path, out_csv_path, tol, max_iter):
+def fit(newick_path, fasta_path, out_csv_prefix, tol, max_iter):
     """Fit an SBN using generalized pruning."""
-    ourlibsbn.gp_fit(newick_path, fasta_path, out_csv_path, tol, max_iter)
+    ourlibsbn.gp_fit(newick_path, fasta_path, out_csv_prefix, tol, max_iter)
 
 
 @cli.command()
 @click.argument("newick_path", required=True, type=click.Path(exists=True))
-@click.argument("out_csv_path", required=True, type=click.Path())
-def sa(newick_path, out_csv_path):  # pylint: disable=invalid-name
-    """Fit an SBN using simple average (SA) training."""
-    ourlibsbn.simple_average(newick_path, out_csv_path)
+@click.argument("out_csv_prefix", required=True, type=click.Path())
+def sa(newick_path, out_csv_prefix):  # pylint: disable=invalid-name
+    """Fit an SBN using simple average (SA) training and spit the SBN parameters
+    to CSV, as well as the unconditional subsplit probabilities to `.subsplit.csv`."""
+    ourlibsbn.simple_average(newick_path, out_csv_prefix)
 
 
 @cli.command()
 @click.argument("gp_csv", required=True, type=click.Path(exists=True))
 @click.argument("sa_csv", required=True, type=click.Path(exists=True))
+@click.argument("sa_subsplit_csv", required=True, type=click.Path(exists=True))
 @click.argument("out_prefix", required=True, type=click.Path())
-def compare(gp_csv, sa_csv, out_prefix):
-    """Compare parameters between GP and SA."""
-    gpb.compare.compare_parameters(gp_csv, sa_csv, out_prefix)
+def compare(gp_csv, sa_csv, sa_subsplit_csv, out_prefix):
+    """Compare parameters between GP and SA, incorporating SA subsplit probabilities."""
+    gpb.compare.compare_parameters(gp_csv, sa_csv, sa_subsplit_csv, out_prefix)
+
+
+@cli.command()
+@click.argument("newick_path", required=True, type=click.Path(exists=True))
+@click.argument("sbn_parameter_csv", required=True, type=click.Path(exists=True))
+@click.argument("out_csv_path", required=True, type=click.Path())
+def treeprob(newick_path, sbn_parameter_csv, out_csv_path):
+    """Calculate probabilities of the currently loaded trees and spit to CSV."""
+    ourlibsbn.tree_probability(newick_path, sbn_parameter_csv, out_csv_path)
+
+
+@cli.command()
+@click.argument("newick_glob", required=True)
+@click.argument("fasta_path", required=True, type=click.Path(exists=True))
+@click.argument("out_csv_path", required=True, type=click.Path())
+def treemarginal(newick_glob, fasta_path, out_csv_path):
+    """Directly estimate the marginal log likelihood for trees supplied in a file for
+    each file in the supplied Newick path glob."""
+    ourlibsbn.tree_marginal(newick_glob, fasta_path, out_csv_path)
+
+
+@cli.command()
+@click.argument("newick_path", required=True, type=click.Path(exists=True))
+@click.argument("fasta_path", required=True, type=click.Path(exists=True))
+@click.argument("pcsp_csv_path", required=True, type=click.Path(exists=True))
+@click.option("--tol", type=float, default=1e-2)
+@click.option("--max-iter", type=int, default=10)
+@click_config_file.configuration_option(
+    implicit=False, cmd_name="fit", provider=json_provider
+)
+def treeexport(newick_path, fasta_path, pcsp_csv_path, tol, max_iter):
+    """Export trees with GP branch lengths for each supplied PCSP."""
+    ourlibsbn.export_trees_with_subsplits(
+        newick_path, fasta_path, pcsp_csv_path, tol, max_iter
+    )
+
+
+@cli.command()
+@click.argument("direct_marginals_csv", required=True, type=click.Path(exists=True))
+@click.argument("prior_csv", required=True, type=click.Path(exists=True))
+@click.argument("sa_csv", required=True, type=click.Path(exists=True))
+@click.argument("out_prefix", required=True, type=click.Path())
+def comparedirect(direct_marginals_csv, prior_csv, sa_csv, out_prefix):
+    """Compare to the "direct" marginal likelihoods for estimating SBN parameters."""
+    gpb.compare.compare_to_direct(direct_marginals_csv, prior_csv, sa_csv, out_prefix)
 
 
 if __name__ == "__main__":

@@ -12,7 +12,7 @@
     "reroot_number": {{reroot_number}},
     "reroot_name": "{{reroot_name}}",
     "fit": {
-        "tol": 0.01,
+        "tol": 0.0001,
         "max_iter": 100
     }
 }
