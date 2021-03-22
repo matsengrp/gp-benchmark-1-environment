@@ -8,9 +8,9 @@ import pandas as pd
 from scipy.special import logsumexp, softmax
 
 
-def gp_fit(newick_path, fasta_path, out_csv_prefix, tol, max_iter):
+def gp_fit(newick_path, fasta_path, out_csv_prefix, tol, max_iter, mmap_path):
     """Fit an SBN via GP."""
-    inst = libsbn.gp_instance("mmap.dat")
+    inst = libsbn.gp_instance(mmap_path)
     inst.read_fasta_file(fasta_path)
     inst.read_newick_file(newick_path)
     inst.make_engine()

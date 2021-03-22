@@ -4,6 +4,7 @@ import json
 import click
 import click_config_file
 import gpb.compare
+import gpb.outside
 import gpb.ourlibsbn as ourlibsbn
 import gpb.templating as templating
 
@@ -61,10 +62,11 @@ def template(template_name, settings_json, dest_path, make_paths_absolute, mb):
 @click.argument("out_csv_prefix", required=True, type=click.Path())
 @click.option("--tol", type=float, default=1e-2)
 @click.option("--max-iter", type=int, default=10)
+@click.option("--mmap-path", type=click.Path(), default="mmap.dat")
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
-def fit(newick_path, fasta_path, out_csv_prefix, tol, max_iter):
+def fit(newick_path, fasta_path, out_csv_prefix, tol, max_iter, mmap_path):
     """Fit an SBN using generalized pruning."""
-    ourlibsbn.gp_fit(newick_path, fasta_path, out_csv_prefix, tol, max_iter)
+    ourlibsbn.gp_fit(newick_path, fasta_path, out_csv_prefix, tol, max_iter, mmap_path)
 
 
 @cli.command()
@@ -129,6 +131,17 @@ def treeexport(newick_path, fasta_path, pcsp_csv_path, tol, max_iter):
 def comparedirect(direct_marginals_csv, prior_csv, sa_csv, out_prefix):
     """Compare to the "direct" marginal likelihoods for estimating SBN parameters."""
     gpb.compare.compare_to_direct(direct_marginals_csv, prior_csv, sa_csv, out_prefix)
+
+
+@cli.command()
+@click.argument("original_path", required=True, type=click.Path(exists=True))
+@click.argument("outside_path", required=True, type=click.Path(exists=True))
+@click.argument("out_path", required=True, type=click.Path())
+def outsideprob(original_path, outside_path, out_path):
+    """Export the probability for the outside GPCSP with the largest parent subsplit."""
+    gpb.outside.export_line_for_biggest_outside_gpcsp(
+        original_path, outside_path, out_path
+    )
 
 
 if __name__ == "__main__":
