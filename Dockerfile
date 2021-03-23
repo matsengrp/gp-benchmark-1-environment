@@ -14,4 +14,7 @@ RUN make -j 20 test
 
 COPY . /gp-benchmark-1-environment
 WORKDIR /gp-benchmark-1-environment
+git submodule update --init --recursive
+make -C spr_neighbors
+cp spr_neighbors/spr_neighbors $CONDA_PREFIX/bin
 RUN pip install -e .
