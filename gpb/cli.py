@@ -144,5 +144,13 @@ def outsideprob(original_path, outside_path, out_path):
     )
 
 
+@cli.command()
+@click.argument("sbn_csv_path", required=True, type=click.Path(exists=True))
+@click.argument("out_path", required=True, type=click.Path())
+def addmeta(sbn_csv_path, out_path):
+    """Add metadata about a subsplit csv and wr."""
+    gpb.compare.add_metadata_to_sbn_csv(sbn_csv_path, out_path)
+
+
 if __name__ == "__main__":
     cli()  # pylint: disable=no-value-for-parameter

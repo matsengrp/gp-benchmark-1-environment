@@ -6,57 +6,9 @@ import pandas as pd
 import seaborn as sns
 from scipy.special import logsumexp
 
+import gpb.bitset_string as bitset_string
+
 sns.set_context("poster")
-
-
-def taxon_set_of_str_bitset(bitset):
-    """Make the 1-indexed taxon set from a string bitset."""
-    return {index + 1 for index, value in enumerate(bitset) if value == "1"}
-
-
-def indexed_pcsp_of_bitset_pcsp(pcsp_str):
-    """Make a string representation of a PCSP described in 1-indexed form."""
-    [sister, focal, child1] = [
-        taxon_set_of_str_bitset(bitset) for bitset in pcsp_str.split("|")
-    ]
-    return str(((sister, focal), (set(sorted(focal - child1)), child1)))
-
-
-def indexed_gpcsp_of_bitset_gpcsp(gpcsp_str):
-    """Make a string representation of a pretty GPCSP described in 1-indexed form."""
-    if "|" in gpcsp_str:
-        return indexed_pcsp_of_bitset_pcsp(gpcsp_str)
-    # else:
-    # We have a rootsplit.
-    return str(taxon_set_of_str_bitset(gpcsp_str))
-
-
-def parent_bitset_of_gpcsp(gpcsp_str, sort=False):
-    """Given a PCSP string representation, extract the parent subsplit with no bar.
-    Return empty string if there is no bar in the input (a rootsplit)."""
-    if "|" in gpcsp_str:
-        parent0, parent1, _ = gpcsp_str.split("|")
-        subsplits = [parent0, parent1]
-        if sort:
-            subsplits.sort()
-        return "".join(subsplits)
-    # else:
-    return ""
-
-
-def rotate_subsplit(bitset_string):
-    """Given a bitset abcdef, return defabc."""
-    assert len(bitset_string) % 2 == 0
-    half_len = len(bitset_string) // 2
-    return bitset_string[half_len:] + bitset_string[:half_len]
-
-
-def pretty_gpcsp_of_string(s):
-    """Insert vertical bars to make a PCSP bitset string easier to read."""
-    length = len(s)
-    assert length % 3 == 0
-    chunk_length = length // 3
-    return "|".join([s[i : i + chunk_length] for i in range(0, length, chunk_length)])
 
 
 def subsplit_probability_dict_of_csv(subsplit_csv):
@@ -67,7 +19,7 @@ def subsplit_probability_dict_of_csv(subsplit_csv):
         row["subsplit"]: row["probability"] for _, row in subsplit_df.iterrows()
     }
     for subsplit, probability in subsplit_dict.copy().items():
-        subsplit_dict[rotate_subsplit(subsplit)] = probability
+        subsplit_dict[bitset_string.rotate_subsplit(subsplit)] = probability
     subsplit_dict[""] = 1.0
     return subsplit_dict
 
@@ -81,14 +33,14 @@ def compare_parameters(gp_csv, sa_csv, sa_subsplit_csv, out_prefix):
     sa_df = pd.read_csv(sa_csv, names=["gpcsp", sa_name])
 
     sa_probabilities = subsplit_probability_dict_of_csv(sa_subsplit_csv)
-    sa_df["parent"] = sa_df["gpcsp"].apply(parent_bitset_of_gpcsp)
+    sa_df["parent"] = sa_df["gpcsp"].apply(bitset_string.parent_bitset_of_gpcsp)
     sa_df["parent probability"] = sa_df["parent"].apply(sa_probabilities.get)
 
     df = pd.merge(gp_df, sa_df)
     # GP should have all of the SA GPCSPs, and also the fake ones.
     assert len(df) == len(sa_df)
 
-    df["gpcsp"] = df["gpcsp"].apply(indexed_gpcsp_of_bitset_gpcsp)
+    df["gpcsp"] = df["gpcsp"].apply(bitset_string.indexed_gpcsp_of_bitset_gpcsp)
     df["delta"] = df[sa_name] - df[gp_name]
     df = df[[parent_probability_name, "delta", gp_name, sa_name, "gpcsp"]]
     # Drop rows where GP and SA both have them as 1.
@@ -126,12 +78,12 @@ def compare_to_direct(direct_marginals_csv, prior_csv, sa_csv, out_prefix):
     prior_df = pd.read_csv(prior_csv, names=["gpcsp", "prior"])
     df = pd.read_csv(direct_marginals_csv)
     gpcsp_count = len(df)
-    df["gpcsp"] = df["gpcsp"].apply(pretty_gpcsp_of_string)
+    df["gpcsp"] = df["gpcsp"].apply(bitset_string.pretty_gpcsp_of_string)
     df = pd.merge(df, prior_df)
     assert len(df) == gpcsp_count
     df["log_prior"] = df["prior"].apply(np.log)
     df["upost"] = df["marginal"] + df["log_prior"]
-    df["parent"] = df.gpcsp.apply(parent_bitset_of_gpcsp)
+    df["parent"] = df.gpcsp.apply(bitset_string.parent_bitset_of_gpcsp)
     upost_sums = (
         df.groupby(["parent"])["upost"]
         .agg(logsumexp)
@@ -158,3 +110,18 @@ def compare_to_direct(direct_marginals_csv, prior_csv, sa_csv, out_prefix):
     ax.set(ylim=ax.get_xlim())
     sns.despine()
     plt.savefig(out_prefix + ".svg", bbox_inches="tight")
+
+
+def add_metadata_to_sbn_df(df):
+    """Add information about each GPCSP to a dataframe."""
+    df["smaller_child_size"], df["larger_child_size"] = zip(
+        *df["gpcsp"].apply(bitset_string.child_subsplit_taxon_set_sizes)
+    )
+    df["is_rootsplit"] = df["gpcsp"].apply(bitset_string.is_rootsplit)
+    return df
+
+
+def add_metadata_to_sbn_csv(sbn_csv_path, out_path):
+    """Add information about each GPCSP to a CSV."""
+    df = pd.read_csv(sbn_csv_path, names=["gpcsp", "prob"])
+    add_metadata_to_sbn_df(df).to_csv(out_path, index=False)
