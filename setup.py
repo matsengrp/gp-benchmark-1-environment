@@ -14,6 +14,7 @@ setup(
         "click_config_file",
         "csvkit",
         "jinja2",
+        "plotnine",
         "seaborn",
         "seqmagick",
     ],

@@ -148,8 +148,20 @@ def outsideprob(original_path, outside_path, out_path):
 @click.argument("sbn_csv_path", required=True, type=click.Path(exists=True))
 @click.argument("out_path", required=True, type=click.Path())
 def addmeta(sbn_csv_path, out_path):
-    """Add metadata about a subsplit csv and wr."""
+    """Add metadata about a subsplit csv and write it back out."""
     gpb.compare.add_metadata_to_sbn_csv(sbn_csv_path, out_path)
+
+
+@cli.command()
+@click.argument("outside_csv_path", required=True, type=click.Path(exists=True))
+@click.argument("inside_csv_path", required=True, type=click.Path(exists=True))
+@click.argument("out_path", required=True, type=click.Path())
+def outsideplot(outside_csv_path, inside_csv_path, out_path):
+    """Plot a comparison of outside and inside probabilities. We assume that all CSVs
+    have "metadata" in the input CSV."""
+    gpb.outside.plot_outside_prob_comparison(
+        outside_csv_path, inside_csv_path, out_path
+    )
 
 
 if __name__ == "__main__":

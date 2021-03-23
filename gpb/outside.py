@@ -2,9 +2,12 @@
 
 import click
 import pandas as pd
+import plotnine as p9
 
 import gpb.bitset_string as bitset_string
 import gpb.compare as compare
+
+p9.theme_set(p9.theme_bw())
 
 
 def get_biggest_gpcsp(gpcsp_list):
@@ -52,3 +55,33 @@ def export_line_for_biggest_outside_gpcsp(original_path, outside_path, out_path)
     ].copy()
     to_export_df["outside_split_count"] = len(outside_gpcsps)
     compare.add_metadata_to_sbn_df(to_export_df).to_csv(out_path, index=False)
+
+
+def plot_outside_prob_comparison(outside_csv_path, inside_csv_path, out_path):
+    """Make a box and whisker plot comparing probabilities inside and outside of the support."""
+    df = pd.read_csv(outside_csv_path)
+    df.drop("gpcsp", axis=1, inplace=True)
+    df["in_support"] = False
+
+    inside_df = pd.read_csv(inside_csv_path)
+    inside_df.drop("gpcsp", axis=1, inplace=True)
+    inside_df = inside_df[inside_df["prob"] < 1.0]
+    inside_df["in_support"] = True
+
+    df = df.merge(inside_df, how="outer").reset_index()
+    df["is_rootsplit"].sum()
+    # We are fixing the outgroup, so aren't interested in NNIs that modify the rootsplit.
+    df = df[~df["is_rootsplit"].astype(bool)]
+    df.drop("is_rootsplit", axis=1, inplace=True)
+
+    plot = (
+        p9.ggplot(df)
+        + p9.geom_boxplot(
+            p9.aes(x="factor(smaller_child_size)", y="prob", color="in_support")
+        )
+        + p9.scale_y_log10()
+        + p9.scale_color_brewer(type="qual", palette="Dark2")
+        + p9.xlab("size of the smaller child clade")
+        + p9.ylab("normalized probability via composite likelihood")
+    )
+    plot.save(out_path)
