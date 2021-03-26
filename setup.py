@@ -9,7 +9,7 @@ setup(
     packages=["gpb"],
     package_data={"gpb": ["data/*"]},
     scripts=glob.glob("gpb/scripts/*.sh"),
-    entry_points={"console_scripts": ["gpb=gpb.cli:cli"]},
+    entry_points={"console_scripts": ["gpb=gpb.cli:safe_cli"]},
     install_requires=[
         "click_config_file",
         "csvkit",

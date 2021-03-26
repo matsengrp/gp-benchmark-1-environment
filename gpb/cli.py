@@ -1,6 +1,7 @@
 """Command line interface."""
 
 import json
+import sys
 import click
 import click_config_file
 import gpb.compare
@@ -27,6 +28,16 @@ def json_provider(file_path, cmd_name):
 
 
 # Entry point
+def safe_cli():
+    """Top-level CLI for subcommands."""
+    try:
+        cli()
+    except Exception as exception:
+        print("Exception raised when running the command:\n")
+        print(" ".join(sys.argv) + "\n")
+        raise exception
+
+
 @click.group(
     context_settings={"help_option_names": ["-h", "--help"]},
     invoke_without_command=True,
