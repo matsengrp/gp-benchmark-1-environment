@@ -5,6 +5,7 @@ set -eu
 fasta_path=$1
 target_nni_count=$2
 
+rm -rf _ignore_outside
 mkdir -p _ignore_outside
 
 # ### Start by generating trees ###
@@ -37,4 +38,6 @@ echo "Successfully fit GP."
 ls _ignore_outside/*.sbn.csv | grep -v rooted | parallel outside-extract.sh
 csvstack _ignore_outside/*outside.csv > all_outside.csv
 gpb addmeta _ignore_outside/rerooted-topologies.noburnin.nonsingletons.gp.sbn.csv _ignore_outside/rerooted-topologies.noburnin.nonsingletons.gp.sbn.meta.csv
-gpb outsideplot all_outside.csv _ignore_outside/rerooted-topologies.noburnin.nonsingletons.gp.sbn.meta.csv outside.pdf
+for out_path in outside.svg outside.pdf; do
+    gpb outsideplot all_outside.csv _ignore_outside/rerooted-topologies.noburnin.nonsingletons.gp.sbn.meta.csv $out_path
+done
