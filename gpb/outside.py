@@ -11,7 +11,10 @@ p9.theme_set(p9.theme_bw())
 
 
 def get_biggest_gpcsp(gpcsp_list):
-    """Return the GPCSP from the list with the most taxa in its parent split."""
+    """Return the GPCSP from the list with the most taxa in its parent split.
+
+    If this is not unique, return None, indicating that the new GPCSPs are for an
+    existing node."""
     split_size_df = (
         pd.DataFrame(
             {
@@ -22,12 +25,13 @@ def get_biggest_gpcsp(gpcsp_list):
             }
         )
         .sort_values("parent_split_size", ascending=False)
-        .reset_index()
+        .reset_index(drop=True)
     )
     split_sizes = split_size_df["parent_split_size"]
     assert len(split_sizes) > 0
     if len(split_sizes) > 1:
-        assert split_sizes[0] > split_sizes[1], "We should have one biggest new split."
+        if split_sizes[0] == split_sizes[1]:
+            return None  # Non-unique biggest GPCSP.
     return split_size_df["gpcsp"][0]
 
 
@@ -50,9 +54,14 @@ def export_line_for_biggest_outside_gpcsp(original_path, outside_path, out_path)
             "but explains why aren't making an `.outside.csv` in this case."
         )
         return
-    to_export_df = with_outside_df.loc[
-        with_outside_df["gpcsp"] == get_biggest_gpcsp(outside_gpcsps),
-    ].copy()
+    biggest_gpcsp = get_biggest_gpcsp(outside_gpcsps)
+    if not biggest_gpcsp:
+        click.echo(
+            f"The largest GPCSPs in {outside_path} connect to a pre-existing node;"
+            " we are skipping this rare case and so aren't making an `.outside.csv`."
+        )
+        return
+    to_export_df = with_outside_df.loc[with_outside_df["gpcsp"] == biggest_gpcsp].copy()
     to_export_df["outside_split_count"] = len(outside_gpcsps)
     compare.add_metadata_to_sbn_df(to_export_df).to_csv(out_path, index=False)
 
