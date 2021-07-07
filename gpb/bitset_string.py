@@ -24,8 +24,8 @@ def parent_split_size(gpcsp):
 
 
 def child_subsplit_taxon_set_sizes(gpcsp):
-    """Given a "pretty" string representation of a PCSP, find the number of taxa in the
-    smallest component of the child subsplit."""
+    """Return a sorted pair giving the number of taxa in the child subsplit, where the
+    rootsplit is considered to be a child subsplit of a universal split."""
     if is_rootsplit(gpcsp):
         child_component_size_1 = gpcsp.count("0")
         child_component_size_2 = gpcsp.count("1")
