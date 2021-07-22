@@ -1,6 +1,6 @@
 FROM quay.io/matsengrp/libsbn
 
-RUN apt-get update && apt-get install -y mrbayes
+RUN apt-get update && apt-get install -y mrbayes libboost-graph-dev
 
 # Make RUN commands use the libsbn environment:
 SHELL ["/opt/conda/bin/conda", "run", "-n", "libsbn", "/bin/bash", "-c"]
