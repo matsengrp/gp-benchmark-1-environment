@@ -10,7 +10,7 @@ RUN conda install -c conda-forge parallel
 
 RUN git clone --recurse-submodules https://github.com/phylovi/libsbn.git
 WORKDIR /libsbn
-RUN make -j 20 test
+RUN make test
 
 COPY . /gp-benchmark-1-environment
 WORKDIR /gp-benchmark-1-environment
