@@ -1,0 +1,3 @@
+[submodule "spr_neighbors"]
+	path = spr_neighbors
+	url = git@github.com:cwhidden/spr_neighbors.git
