@@ -6,6 +6,7 @@ RUN apt-get update && apt-get install -y mrbayes
 SHELL ["/opt/conda/bin/conda", "run", "-n", "libsbn", "/bin/bash", "-c"]
 
 RUN conda install -c bioconda newick_utils
+RUN conda install -c conda-forge parallel
 
 RUN git clone --recurse-submodules https://github.com/phylovi/libsbn.git
 WORKDIR /libsbn
