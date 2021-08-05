@@ -8,14 +8,14 @@ import pandas as pd
 from scipy.special import logsumexp, softmax
 
 
-def gp_fit(newick_path, fasta_path, out_csv_prefix, tol, max_iter, mmap_path):
+def gp_fit(newick_path, fasta_path, out_csv_prefix, tol, max_iter, use_gradients, mmap_path):
     """Fit an SBN via GP."""
     inst = bito.gp_instance(mmap_path)
     inst.read_fasta_file(fasta_path)
     inst.read_newick_file(newick_path)
     inst.make_engine()
     inst.print_status()
-    inst.estimate_branch_lengths(tol, max_iter)
+    inst.estimate_branch_lengths(tol, max_iter, use_gradients)
     inst.calculate_hybrid_marginals()
     inst.estimate_sbn_parameters()
     inst.sbn_parameters_to_csv(out_csv_prefix + ".sbn.csv")
@@ -72,7 +72,7 @@ def tree_marginal(newick_glob, fasta_path, out_csv_path):
     df.to_csv(out_csv_path, index=False)
 
 
-def export_trees_with_subsplits(newick_path, fasta_path, pcsp_csv_path, tol, max_iter):
+def export_trees_with_subsplits(newick_path, fasta_path, pcsp_csv_path, tol, max_iter, use_gradients):
     """Fit a GP with the given sequences and trees, then for every given PCSP export the
     trees from `newick_path` with the GP branch lengths to `_ignore/trees/...`.
 
@@ -84,7 +84,7 @@ def export_trees_with_subsplits(newick_path, fasta_path, pcsp_csv_path, tol, max
     inst.read_newick_file(newick_path)
     inst.make_engine()
     inst.print_status()
-    inst.estimate_branch_lengths(tol, max_iter)
+    inst.estimate_branch_lengths(tol, max_iter, use_gradients)
 
     sbn_df = pd.read_csv(pcsp_csv_path)
 

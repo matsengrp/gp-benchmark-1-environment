@@ -73,11 +73,12 @@ def template(template_name, settings_json, dest_path, make_paths_absolute, mb):
 @click.argument("out_csv_prefix", required=True, type=click.Path())
 @click.option("--tol", type=float, default=1e-2)
 @click.option("--max-iter", type=int, default=10)
+@click.option("--use_gradients", type=bool, default=False)
 @click.option("--mmap-path", type=click.Path(), default="mmap.dat")
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
-def fit(newick_path, fasta_path, out_csv_prefix, tol, max_iter, mmap_path):
+def fit(newick_path, fasta_path, out_csv_prefix, tol, max_iter, use_gradients, mmap_path):
     """Fit an SBN using generalized pruning."""
-    ourbito.gp_fit(newick_path, fasta_path, out_csv_prefix, tol, max_iter, mmap_path)
+    ourbito.gp_fit(newick_path, fasta_path, out_csv_prefix, tol, max_iter, use_gradients, mmap_path)
 
 
 @cli.command()
@@ -124,13 +125,14 @@ def treemarginal(newick_glob, fasta_path, out_csv_path):
 @click.argument("pcsp_csv_path", required=True, type=click.Path(exists=True))
 @click.option("--tol", type=float, default=1e-2)
 @click.option("--max-iter", type=int, default=10)
+@click.option("--use_gradients", type=bool, default=False)
 @click_config_file.configuration_option(
     implicit=False, cmd_name="fit", provider=json_provider
 )
-def treeexport(newick_path, fasta_path, pcsp_csv_path, tol, max_iter):
+def treeexport(newick_path, fasta_path, pcsp_csv_path, tol, max_iter, use_gradients):
     """Export trees with GP branch lengths for each supplied PCSP."""
     ourbito.export_trees_with_subsplits(
-        newick_path, fasta_path, pcsp_csv_path, tol, max_iter
+        newick_path, fasta_path, pcsp_csv_path, tol, max_iter, use_gradients
     )
 
 
