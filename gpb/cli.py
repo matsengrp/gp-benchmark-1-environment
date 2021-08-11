@@ -59,10 +59,10 @@ def template(template_name, settings_json, dest_path, make_paths_absolute, mb):
         settings_dict = json.load(file)
 
     if make_paths_absolute:
-        templating.expand_mb_settings(settings_dict)
+        templating.make_paths_absolute(settings_dict)
 
     if mb:
-        templating.make_paths_absolute(settings_dict)
+        templating.expand_mb_settings(settings_dict)
 
     templating.template_file(template_name, settings_dict, dest_path)
 
