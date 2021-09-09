@@ -13,9 +13,10 @@ def gp_fit(newick_path, fasta_path, out_csv_prefix, tol, max_iter, use_gradients
     inst = libsbn.gp_instance(mmap_path)
     inst.read_fasta_file(fasta_path)
     inst.read_newick_file(newick_path)
+    inst.use_gradient_optimization(use_gradients)
     inst.make_engine()
     inst.print_status()
-    inst.estimate_branch_lengths(tol, max_iter, use_gradients)
+    inst.estimate_branch_lengths(tol, max_iter)
     inst.calculate_hybrid_marginals()
     inst.estimate_sbn_parameters()
     inst.sbn_parameters_to_csv(out_csv_prefix + ".sbn.csv")
@@ -82,9 +83,10 @@ def export_trees_with_subsplits(newick_path, fasta_path, pcsp_csv_path, tol, max
     inst = libsbn.gp_instance("mmap.dat")
     inst.read_fasta_file(fasta_path)
     inst.read_newick_file(newick_path)
+    inst.use_gradient_optimization(use_gradients)
     inst.make_engine()
     inst.print_status()
-    inst.estimate_branch_lengths(tol, max_iter, use_gradients)
+    inst.estimate_branch_lengths(tol, max_iter)
 
     sbn_df = pd.read_csv(pcsp_csv_path)
 

@@ -78,7 +78,7 @@ def template(template_name, settings_json, dest_path, make_paths_absolute, mb):
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
 def fit(newick_path, fasta_path, out_csv_prefix, tol, max_iter, use_gradients, mmap_path):
     """Fit an SBN using generalized pruning."""
-    ourlibsbn.gp_fit(newick_path, fasta_path, out_csv_prefix, tol, max_iter, use_gradients,mmap_path)
+    ourlibsbn.gp_fit(newick_path, fasta_path, out_csv_prefix, tol, max_iter, use_gradients, mmap_path)
 
 
 @cli.command()
