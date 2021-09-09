@@ -1,5 +1,5 @@
 {
-    "config_path": "{{config_path}}",
+    "config_path": "config.json",
     "nexus_alignment_path": "../../data/DS{{ds_number}}.n.nex",
     "output_prefix": "ds{{ds_number}}",
     "nchains": 4,
