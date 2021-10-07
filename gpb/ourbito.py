@@ -23,6 +23,7 @@ def gp_fit(newick_path, fasta_path, out_csv_prefix, tol, max_iter, use_gradients
     inst.branch_lengths_to_csv(out_csv_prefix + ".bl.csv")
     inst.sbn_prior_to_csv(out_csv_prefix + ".prior.csv")
     inst.per_gpcsp_llhs_to_csv(out_csv_prefix + ".perpcsp.csv")
+    inst.per_gpcsp_llhs_from_opt_to_csv(out_csv_prefix + ".perpcsp_opt.csv")
 
 
 def simple_average(newick_path, out_csv_prefix):
