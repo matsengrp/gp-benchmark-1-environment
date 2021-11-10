@@ -6,6 +6,7 @@ import click
 import click_config_file
 import gpb.compare
 import gpb.outside
+import gpb.plot
 import gpb.ourbito as ourbito
 import gpb.templating as templating
 
@@ -74,11 +75,23 @@ def template(template_name, settings_json, dest_path, make_paths_absolute, mb):
 @click.option("--tol", type=float, default=1e-2)
 @click.option("--max-iter", type=int, default=10)
 @click.option("--use_gradients", type=bool, default=False)
+@click.option("--steps", type=int, default=500)
 @click.option("--mmap-path", type=click.Path(), default="mmap.dat")
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
-def fit(newick_path, fasta_path, out_csv_prefix, tol, max_iter, use_gradients, mmap_path):
+def fit(newick_path, fasta_path, out_csv_prefix, tol, max_iter, use_gradients, steps, mmap_path):
     """Fit an SBN using generalized pruning."""
-    ourbito.gp_fit(newick_path, fasta_path, out_csv_prefix, tol, max_iter, use_gradients, mmap_path)
+    ourbito.gp_fit(newick_path, fasta_path, out_csv_prefix, tol, max_iter, use_gradients, steps, mmap_path)
+
+
+@cli.command()
+@click.argument("newick_path", required=True, type=click.Path(exists=True))
+@click.argument("fasta_path", required=True, type=click.Path(exists=True))
+@click.argument("out_csv_prefix", required=True, type=click.Path())
+@click.option("--steps", type=int, default=100)
+@click.option("--mmap-path", type=click.Path(), default="mmap.dat")
+def pcspsurface(newick_path, fasta_path, out_csv_prefix, steps, mmap_path):  # pylint: disable=invalid-name
+    """Scan and find per pcsp log likelihood surfaces"""
+    ourlibsbn.pcsp_likelihood_surface(newick_path, fasta_path, out_csv_prefix, steps, mmap_path)
 
 
 @cli.command()
@@ -176,6 +189,25 @@ def outsideplot(outside_csv_path, inside_csv_path, out_path):
         outside_csv_path, inside_csv_path, out_path
     )
 
+
+@cli.command()
+@click.argument("per_pcsp_likelihoods_path", required=True, type=click.Path(exists=True))
+@click.argument("out_path", required=True, type=click.Path())
+def pcspoptplot(per_pcsp_likelihoods_path, out_path):
+    """Plot the per pcsp likelihoods during optimization"""
+    gpb.plot.per_pcsp_likelihoods_from_opt_plot(
+        per_pcsp_likelihoods_path, out_path
+    )
+
+
+@cli.command()
+@click.argument("per_pcsp_likelihoods_path", required=True, type=click.Path(exists=True))
+@click.argument("out_path", required=True, type=click.Path())
+def pcspsurfaceplot(per_pcsp_likelihoods_path, out_path):
+    """Plot the per pcsp likelihood surfaces"""
+    gpb.plot.per_pcsp_likelihood_surfaces(
+        per_pcsp_likelihoods_path, out_path
+    )
 
 if __name__ == "__main__":
     cli()  # pylint: disable=no-value-for-parameter
