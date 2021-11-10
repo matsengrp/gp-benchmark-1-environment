@@ -25,20 +25,22 @@ def gp_fit(newick_path, fasta_path, out_csv_prefix, tol, max_iter, use_gradients
     inst.per_gpcsp_llhs_to_csv(out_csv_prefix + ".perpcsp.csv")
     inst.per_gpcsp_bls_from_opt_to_csv(out_csv_prefix + ".perpcsp_bl_from_opt.csv")
     inst.per_gpcsp_llhs_from_opt_to_csv(out_csv_prefix + ".perpcsp_llh_from_opt.csv")
-    # inst.scan_pcsp_likelihoods(steps) # to get pcsp likelihood surface from optimized bl's.
-    # inst.per_gpcsp_llh_surfaces_to_csv(out_csv_prefix + ".perpcsp_llh_surface.csv")
-    inst.track_values_from_opt_to_csv(out_csv_prefix + ".track_values.csv")
 
 
-def pcsp_likelihood_surface(newick_path, fasta_path, out_csv_prefix, steps, mmap_path):
-    """Get the per PCSP log likelihood surfaces"""
+def pcsp_likelihood_surface(newick_path, fasta_path, out_csv_prefix, tol, max_iter, steps, mmap_path):
+    """Get the per PCSP log likelihood surfaces and then track perturbations from llh change"""
     inst = libsbn.gp_instance(mmap_path)
     inst.read_fasta_file(fasta_path)
     inst.read_newick_file(newick_path)
     inst.make_engine()
     inst.print_status()
-    inst.scan_pcsp_likelihoods(steps)
-    inst.per_gpcsp_llh_surfaces_to_csv(out_csv_prefix + ".perpcsp_llh_surf.csv")
+    inst.estimate_branch_lengths(tol, max_iter)
+
+    if steps > 0:
+        inst.scan_pcsp_likelihoods(steps)
+        inst.per_gpscp_llh_surfaces_to_csv(out_csv_prefix + ".perpscp_llh_surf.csv")
+    
+    inst.track_values_from_opt_to_csv(out_csv_prefix + ".track_values.csv")
 
 
 def simple_average(newick_path, out_csv_prefix):
