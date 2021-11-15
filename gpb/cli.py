@@ -87,11 +87,13 @@ def fit(newick_path, fasta_path, out_csv_prefix, tol, max_iter, use_gradients, s
 @click.argument("newick_path", required=True, type=click.Path(exists=True))
 @click.argument("fasta_path", required=True, type=click.Path(exists=True))
 @click.argument("out_csv_prefix", required=True, type=click.Path())
-@click.option("--steps", type=int, default=100)
+@click.option("--tol", type=float, default=1e-2)
+@click.option("--max-iter", type=int, default=10)
+@click.option("--steps", type=int, default=300)
 @click.option("--mmap-path", type=click.Path(), default="mmap.dat")
-def pcspsurface(newick_path, fasta_path, out_csv_prefix, steps, mmap_path):  # pylint: disable=invalid-name
+def pcspsurface(newick_path, fasta_path, out_csv_prefix, steps, mmap_path):  
     """Scan and find per pcsp log likelihood surfaces"""
-    ourlibsbn.pcsp_likelihood_surface(newick_path, fasta_path, out_csv_prefix, steps, mmap_path)
+    ourbito.pcsp_likelihood_surface(newick_path, fasta_path, out_csv_prefix, tol, max_iter, steps, mmap_path)
 
 
 @cli.command()
