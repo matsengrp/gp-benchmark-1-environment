@@ -28,9 +28,9 @@ def per_pcsp_likelihoods_from_opt_plot(per_pcsp_likelihoods_path, out_path):
     )
     plot.save(out_path)
 
-def per_pcsp_likelihood_surfaces(per_pcsp_likelihoods_path, out_path):
+def per_pcsp_likelihood_surfaces(per_pcsp_likelihood_surfaces_path, out_path):
 
-    df = pd.read_csv(per_pcsp_likelihoods_path, header = None)
+    df = pd.read_csv(per_pcsp_likelihood_surfaces_path, header = None)
     df = df.rename(columns = {0:'gpcsp', 1:'branch_length', 2:'llh'})
 
     df = df[df['gpcsp'] != df['gpcsp'][0]]
