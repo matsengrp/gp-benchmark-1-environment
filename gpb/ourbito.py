@@ -1,7 +1,7 @@
-"""our libsbn interface."""
+"""our bito interface."""
 
 import glob
-import libsbn
+import bito
 import numpy as np
 import os
 import pandas as pd
@@ -10,7 +10,7 @@ from scipy.special import logsumexp, softmax
 
 def gp_fit(newick_path, fasta_path, out_csv_prefix, tol, max_iter, mmap_path):
     """Fit an SBN via GP."""
-    inst = libsbn.gp_instance(mmap_path)
+    inst = bito.gp_instance(mmap_path)
     inst.read_fasta_file(fasta_path)
     inst.read_newick_file(newick_path)
     inst.make_engine()
@@ -25,7 +25,7 @@ def gp_fit(newick_path, fasta_path, out_csv_prefix, tol, max_iter, mmap_path):
 
 def simple_average(newick_path, out_csv_prefix):
     """Fit an SBN using simple average."""
-    inst = libsbn.rooted_instance("")
+    inst = bito.rooted_instance("")
     inst.read_newick_file(newick_path)
     inst.process_loaded_trees()
     inst.train_simple_average()
@@ -35,7 +35,7 @@ def simple_average(newick_path, out_csv_prefix):
 
 def tree_probability(newick_path, sbn_parameter_csv, out_csv_path):
     """Calculate tree probabilities."""
-    inst = libsbn.rooted_instance("")
+    inst = bito.rooted_instance("")
     inst.read_newick_file(newick_path)
     inst.process_loaded_trees()
     inst.read_sbn_parameters_from_csv(sbn_parameter_csv)
@@ -46,10 +46,10 @@ def tree_probability(newick_path, sbn_parameter_csv, out_csv_path):
 def marginal_across_newick_trees(newick_path, fasta_path):
     """Directly (i.e. using an average) estimate the marginal log likelihood for trees
     supplied in a file."""
-    simple_specification = libsbn.PhyloModelSpecification(
+    simple_specification = bito.PhyloModelSpecification(
         substitution="JC69", site="constant", clock="none"
     )
-    inst = libsbn.unrooted_instance("")
+    inst = bito.unrooted_instance("")
     inst.read_fasta_file(fasta_path)
     inst.read_newick_file(newick_path)
     inst.prepare_for_phylo_likelihood(simple_specification, 2, [])
@@ -79,7 +79,7 @@ def export_trees_with_subsplits(newick_path, fasta_path, pcsp_csv_path, tol, max
     We supply the PCSPs as the first column of the given CSV of PCSPs (typically the SBN
     parameters from a run of GP).
     """
-    inst = libsbn.gp_instance("mmap.dat")
+    inst = bito.gp_instance("mmap.dat")
     inst.read_fasta_file(fasta_path)
     inst.read_newick_file(newick_path)
     inst.make_engine()

@@ -6,7 +6,7 @@ import click
 import click_config_file
 import gpb.compare
 import gpb.outside
-import gpb.ourlibsbn as ourlibsbn
+import gpb.ourbito as ourbito
 import gpb.templating as templating
 
 
@@ -77,7 +77,7 @@ def template(template_name, settings_json, dest_path, make_paths_absolute, mb):
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
 def fit(newick_path, fasta_path, out_csv_prefix, tol, max_iter, mmap_path):
     """Fit an SBN using generalized pruning."""
-    ourlibsbn.gp_fit(newick_path, fasta_path, out_csv_prefix, tol, max_iter, mmap_path)
+    ourbito.gp_fit(newick_path, fasta_path, out_csv_prefix, tol, max_iter, mmap_path)
 
 
 @cli.command()
@@ -86,7 +86,7 @@ def fit(newick_path, fasta_path, out_csv_prefix, tol, max_iter, mmap_path):
 def sa(newick_path, out_csv_prefix):  # pylint: disable=invalid-name
     """Fit an SBN using simple average (SA) training and spit the SBN parameters
     to CSV, as well as the unconditional subsplit probabilities to `.subsplit.csv`."""
-    ourlibsbn.simple_average(newick_path, out_csv_prefix)
+    ourbito.simple_average(newick_path, out_csv_prefix)
 
 
 @cli.command()
@@ -105,7 +105,7 @@ def compare(gp_csv, sa_csv, sa_subsplit_csv, out_prefix):
 @click.argument("out_csv_path", required=True, type=click.Path())
 def treeprob(newick_path, sbn_parameter_csv, out_csv_path):
     """Calculate probabilities of the currently loaded trees and spit to CSV."""
-    ourlibsbn.tree_probability(newick_path, sbn_parameter_csv, out_csv_path)
+    ourbito.tree_probability(newick_path, sbn_parameter_csv, out_csv_path)
 
 
 @cli.command()
@@ -115,7 +115,7 @@ def treeprob(newick_path, sbn_parameter_csv, out_csv_path):
 def treemarginal(newick_glob, fasta_path, out_csv_path):
     """Directly estimate the marginal log likelihood for trees supplied in a file for
     each file in the supplied Newick path glob."""
-    ourlibsbn.tree_marginal(newick_glob, fasta_path, out_csv_path)
+    ourbito.tree_marginal(newick_glob, fasta_path, out_csv_path)
 
 
 @cli.command()
@@ -129,7 +129,7 @@ def treemarginal(newick_glob, fasta_path, out_csv_path):
 )
 def treeexport(newick_path, fasta_path, pcsp_csv_path, tol, max_iter):
     """Export trees with GP branch lengths for each supplied PCSP."""
-    ourlibsbn.export_trees_with_subsplits(
+    ourbito.export_trees_with_subsplits(
         newick_path, fasta_path, pcsp_csv_path, tol, max_iter
     )
 

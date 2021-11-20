@@ -1,15 +1,15 @@
-FROM quay.io/matsengrp/libsbn
+FROM quay.io/matsengrp/bito
 
 RUN apt-get update && apt-get install -y mrbayes libboost-graph-dev
 
-# Make RUN commands use the libsbn environment:
-SHELL ["/opt/conda/bin/conda", "run", "-n", "libsbn", "/bin/bash", "-c"]
+# Make RUN commands use the bito environment:
+SHELL ["/opt/conda/bin/conda", "run", "-n", "bito", "/bin/bash", "-c"]
 
 RUN conda install -c bioconda newick_utils
 RUN conda install -c conda-forge parallel
 
-RUN git clone --recurse-submodules https://github.com/phylovi/libsbn.git
-WORKDIR /libsbn
+RUN git clone --recurse-submodules https://github.com/phylovi/bito.git
+WORKDIR /bito
 RUN make test
 
 COPY . /gp-benchmark-1-environment
