@@ -212,5 +212,18 @@ def pcspsurfaceplot(per_pcsp_likelihood_surfaces_path, out_path):
         per_pcsp_likelihood_surfaces_path, out_path
     )
 
+
+@cli.command()
+@click.argument("nograd_surf_path", required=True, type=click.Path(exists=True))
+@click.argument("nograd_track_path", required=True, type=click.Path(exists=True))
+@click.argument("grad_surf_path", required=True, type=click.Path(exists=True))
+@click.argument("grad_track_path", required=True, type=click.Path(exists=True))
+@click.argument("out_path", required=True, type=click.Path())
+def pcsptrackplot(nograd_surf_path, nograd_track_path, grad_surf_path, grad_track_path, out_path):
+    """Plot per pcsp surfaces by optimization method"""
+    gpb.plot.per_pcsp_likelihood_surfaces_by_opt(
+        nograd_surf_path, nograd_track_path, grad_surf_path, grad_track_path, out_path
+    )
+
 if __name__ == "__main__":
     cli()  # pylint: disable=no-value-for-parameter

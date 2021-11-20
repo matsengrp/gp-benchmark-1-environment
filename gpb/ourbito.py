@@ -35,7 +35,7 @@ def pcsp_likelihood_surface(newick_path, fasta_path, out_csv_prefix, tol, max_it
     inst.use_gradient_optimization(use_gradients)
     inst.make_engine()
     inst.print_status()
-    inst.estimate_branch_lengths(tol, max_iter)
+    inst.hot_start_branch_lengths()
 
     if steps > 0:
         inst.scan_pcsp_likelihoods(steps)
