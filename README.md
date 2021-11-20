@@ -4,7 +4,7 @@
 
 ## Dependencies
 
-We assume that this will be run in the [libsbn](https://github.com/phylovi/libsbn) conda environment.
+We assume that this will be run in the [bito](https://github.com/phylovi/bito) conda environment.
 
 Python dependencies will be installed via pip with the command below.
 We also require:
