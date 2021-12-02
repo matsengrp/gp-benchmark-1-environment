@@ -1,0 +1,15 @@
+{
+    "config_path": "mb-for-watching.json",
+    "nexus_alignment_path": "../../data/DS{{ds_number}}.n.nex",
+    "output_prefix": "ds{{ds_number}}",
+    "brlenspr": "unconstrained:exp(10.0)",
+    "nchains": 4,
+    "ngen": 1000,
+    "burnin_frac": 0.,
+    "samplefreq": 1,
+    "printfreq": 1,
+    "seed": 42,
+    "swapseed": 1337,
+    "reroot_number": {{reroot_number}},
+    "reroot_name": "{{reroot_name}}"
+}
