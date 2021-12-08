@@ -59,13 +59,13 @@ def per_pcsp_likelihood_surfaces_by_opt(nograd_surf_path, nograd_track_path, gra
     
     nograd_surf = pd.read_csv(nograd_surf_path, header = None, names = colnames)
     nograd_track = pd.read_csv(nograd_track_path, header = None, names = colnames)
-    nograd_surf['opt'] = 'nograd'
-    nograd_track['opt'] = 'nograd'
+    nograd_surf['opt'] = 'brent'
+    nograd_track['opt'] = 'brent'
 
     grad_surf = pd.read_csv(grad_surf_path, header = None, names = colnames)
     grad_track = pd.read_csv(grad_track_path, header = None, names = colnames)
-    grad_surf['opt'] = 'grad'
-    grad_track['opt'] = 'grad'
+    grad_surf['opt'] = 'newton'
+    grad_track['opt'] = 'newton'
 
     surf_df = nograd_surf.append(grad_surf, ignore_index=True, sort=False)
     track_df = nograd_track.append(grad_track, ignore_index=True, sort=False)
@@ -84,11 +84,12 @@ def per_pcsp_likelihood_surfaces_by_opt(nograd_surf_path, nograd_track_path, gra
         plot = (
             p9.ggplot(surface,
                       p9.aes(x='branch_length', y = 'llh'))
-            + p9.geom_line(p9.aes(linetype= 'opt'))
-            + p9.geom_point(p9.aes(x='branch_length', y='llh',color='iter'),
+            + p9.geom_line()
+            + p9.geom_point(p9.aes(x='branch_length', y='llh', color='iter'),
                             data = track)
             + p9.xlab('branch_length')
             + p9.ylab('per pcsp marginal log likelihood')
+            + p9.facet_wrap('opt')
             + p9.ggtitle(gpcsp)
             + p9.theme(plot_title = p9.element_text(size = 6))
         )
