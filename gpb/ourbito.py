@@ -29,7 +29,7 @@ def gp_fit(newick_path, fasta_path, out_csv_prefix, tol, max_iter, use_gradients
 
 def pcsp_likelihood_surface(newick_path, fasta_path, out_csv_prefix, tol, max_iter, use_gradients, steps, mmap_path):
     """Get the per PCSP log likelihood surfaces and then track perturbations from llh change"""
-    inst = libsbn.gp_instance(mmap_path)
+    inst = bito.gp_instance(mmap_path)
     inst.read_fasta_file(fasta_path)
     inst.read_newick_file(newick_path)
     inst.use_gradient_optimization(use_gradients)
@@ -41,7 +41,12 @@ def pcsp_likelihood_surface(newick_path, fasta_path, out_csv_prefix, tol, max_it
         inst.scan_pcsp_likelihoods(steps)
         inst.per_gpcsp_llh_surfaces_to_csv(out_csv_prefix + ".perpcsp_llh_surface.csv")
     
-    inst.track_values_from_opt_to_csv(out_csv_prefix + ".tracked_bl_correction.csv")
+    # Now fiddle/track
+    inst.hot_start_branch_lengths();
+    inst.track_values_from_optimization();
+    inst.full_dag_optim_values_to_csv(out_csv_prefix + ".tracked_bl_correction.csv")
+    inst.optim_path_bl_to_csv(out_csv_prefix + ".optim_path_bl.csv")
+    inst.optim_path_llh_to_csv(out_csv_prefix + ".optim_path_llh.csv")
 
 
 def simple_average(newick_path, out_csv_prefix):
