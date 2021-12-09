@@ -37,7 +37,7 @@ def pcsp_likelihood_surface(newick_path, fasta_path, out_csv_prefix, tol, max_it
     inst.print_status()
     inst.hot_start_branch_lengths()
 
-    if steps > 0:
+    if steps > 0 & use_gradients == 0:
         inst.scan_pcsp_likelihoods(steps)
         inst.per_gpcsp_llh_surfaces_to_csv(out_csv_prefix + ".perpcsp_llh_surface.csv")
     
