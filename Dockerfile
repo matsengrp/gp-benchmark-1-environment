@@ -1,6 +1,7 @@
 FROM quay.io/matsengrp/bito
 
-RUN apt-get update && apt-get install -y mrbayes libboost-graph-dev
+RUN apt-get --allow-releaseinfo-change update
+RUN apt-get install -y mrbayes libboost-graph-dev
 
 # Make RUN commands use the bito environment:
 SHELL ["/opt/conda/bin/conda", "run", "-n", "bito", "/bin/bash", "-c"]
@@ -10,7 +11,6 @@ RUN conda install -c conda-forge parallel
 
 RUN git clone --recurse-submodules https://github.com/phylovi/bito.git
 WORKDIR /bito
-RUN make test
 
 COPY . /gp-benchmark-1-environment
 WORKDIR /gp-benchmark-1-environment
