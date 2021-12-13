@@ -2,14 +2,12 @@
 
 import math
 import os
-from jinja2 import Environment, PackageLoader, StrictUndefined
+from jinja2 import Environment, FileSystemLoader, StrictUndefined
 
 
-def template_file(template_name, settings_dict, dest_path):
+def template_file(template_name, template_dir, settings_dict, dest_path):
     """Build from a template."""
-    env = Environment(
-        loader=PackageLoader("gpb", "templates"), undefined=StrictUndefined
-    )
+    env = Environment(loader=FileSystemLoader(template_dir), undefined=StrictUndefined)
     template = env.get_template(template_name)
     with open(dest_path, "w") as file_obj:
         file_obj.write(template.render(**settings_dict) + "\n")
