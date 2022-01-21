@@ -25,6 +25,9 @@ def gp_fit(newick_path, fasta_path, out_csv_prefix, tol, max_iter, use_gradients
     inst.per_gpcsp_llhs_to_csv(out_csv_prefix + ".perpcsp.csv")
     inst.per_gpcsp_bls_from_opt_to_csv(out_csv_prefix + ".perpcsp_bl_from_opt.csv")
     inst.per_gpcsp_llhs_from_opt_to_csv(out_csv_prefix + ".perpcsp_llh_from_opt.csv")
+    inst.optim_path_bl_to_csv(out_csv_prefix + ".optim_path_bl.csv")
+    inst.optim_path_llh_to_csv(out_csv_prefix + ".optim_path_llh.csv")
+    inst.optim_path_deriv_to_csv(out_csv_prefix + ".optim_path_deriv.csv")
 
 
 def pcsp_likelihood_surface(newick_path, fasta_path, out_csv_prefix, tol, max_iter, use_gradients, steps, mmap_path):
@@ -36,6 +39,7 @@ def pcsp_likelihood_surface(newick_path, fasta_path, out_csv_prefix, tol, max_it
     inst.make_engine()
     inst.print_status()
     inst.hot_start_branch_lengths()
+    inst.branch_lengths_to_csv(out_csv_prefix + ".bl.afterhotstart.csv")
 
     if steps > 0 & use_gradients == 0:
         inst.scan_pcsp_likelihoods(steps)
@@ -45,8 +49,9 @@ def pcsp_likelihood_surface(newick_path, fasta_path, out_csv_prefix, tol, max_it
     inst.hot_start_branch_lengths();
     inst.track_values_from_optimization();
     inst.full_dag_optim_values_to_csv(out_csv_prefix + ".tracked_bl_correction.csv")
-    inst.optim_path_bl_to_csv(out_csv_prefix + ".optim_path_bl.csv")
-    inst.optim_path_llh_to_csv(out_csv_prefix + ".optim_path_llh.csv")
+    inst.optim_path_bl_to_csv(out_csv_prefix + ".optim_path_bl_from_track.csv")
+    inst.optim_path_llh_to_csv(out_csv_prefix + ".optim_path_llh_from_track.csv")
+    inst.optim_path_deriv_to_csv(out_csv_prefix + ".optim_path_deriv_from_track.csv")
 
 
 def simple_average(newick_path, out_csv_prefix):
