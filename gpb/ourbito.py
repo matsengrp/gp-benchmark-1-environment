@@ -8,7 +8,7 @@ import pandas as pd
 from scipy.special import logsumexp, softmax
 
 
-def gp_fit(newick_path, fasta_path, out_csv_prefix, tol, max_iter, use_gradients, mmap_path):
+def gp_fit(newick_path, fasta_path, out_csv_prefix, tol, max_iter, per_pcsp_convg, use_gradients, mmap_path):
     """Fit an SBN via GP."""
     inst = bito.gp_instance(mmap_path)
     inst.read_fasta_file(fasta_path)
@@ -16,7 +16,7 @@ def gp_fit(newick_path, fasta_path, out_csv_prefix, tol, max_iter, use_gradients
     inst.use_gradient_optimization(use_gradients)
     inst.make_engine()
     inst.print_status()
-    inst.estimate_branch_lengths(tol, max_iter)
+    inst.estimate_branch_lengths(tol, max_iter, quiet = False, per_pcsp_convg = per_pcsp_convg)
     inst.calculate_hybrid_marginals()
     inst.estimate_sbn_parameters() 
     inst.sbn_parameters_to_csv(out_csv_prefix + ".sbn.csv")

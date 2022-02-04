@@ -19,14 +19,26 @@ def per_pcsp_likelihoods_from_opt_plot(per_pcsp_likelihoods_path, out_path):
     df = pd.melt(df, id_vars = ['gpcsp', 'smaller_child_size', 'is_rootsplit'], 
                  var_name='iter', value_name='per_pcsp_llh')
 
+    df['iter'] = pd.to_numeric(df['iter'])
+    df = df.loc[df.iter > 2,:]
+
+    df['llh_diff'] = df.groupby('gpcsp')['per_pcsp_llh'].diff().fillna(0)
+    gpcsps_to_check = df.loc[df.llh_diff < 0,:]['gpcsp'].unique()
+    to_plot = df.loc[df['gpcsp'].isin(gpcsps_to_check).to_numpy().tolist()]
+
     plot = (
-        p9.ggplot(df,
-                  p9.aes(x="iter", y = "per_pcsp_llh", group = "gpcsp"))
-        + p9.geom_line(p9.aes(color ="factor(smaller_child_size)"))   
-        + p9.xlab("iterations over composite marginal convergence")
-        + p9.ylab("per pcsp marginal log likelihood")
+        p9.ggplot(to_plot,
+                  p9.aes(x="iter", y = "llh_diff", group = 'gpcsp'))
+        + p9.geom_point(p9.aes(color = 'gpcsp'))
+        + p9.geom_path(p9.aes(color = 'gpcsp'))
+        + p9.xlab("iterations")
+        + p9.ylab("difference in per_pcsp_llh")
+        + p9.ggtitle(out_path[0:3])
+        + p9.theme(legend_position = 'none')
     )
-    plot.save(out_path)
+
+    plot.save(filename = out_path)
+
 
 def per_pcsp_likelihood_surfaces_by_opt(nograd_surf_path, nograd_track_path, grad_surf_path, grad_track_path, out_path):
 

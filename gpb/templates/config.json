@@ -15,6 +15,7 @@
     "fit": {
         "tol": 0.0001,
         "max_iter": 100,
+	"per_pcsp_convg": {{per_pcsp_convg}},
 	"use_gradients": {{use_gradients}}
     },
     "pcspsurface": {
