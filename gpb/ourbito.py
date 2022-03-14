@@ -23,11 +23,11 @@ def gp_fit(newick_path, fasta_path, out_csv_prefix, tol, max_iter, per_pcsp_conv
     inst.branch_lengths_to_csv(out_csv_prefix + ".bl.csv")
     inst.sbn_prior_to_csv(out_csv_prefix + ".prior.csv")
     inst.per_gpcsp_llhs_to_csv(out_csv_prefix + ".perpcsp.csv")
-    inst.per_gpcsp_bls_from_opt_to_csv(out_csv_prefix + ".perpcsp_bl_from_opt.csv")
-    inst.per_gpcsp_llhs_from_opt_to_csv(out_csv_prefix + ".perpcsp_llh_from_opt.csv")
-    inst.optim_path_bl_to_csv(out_csv_prefix + ".optim_path_bl.csv")
-    inst.optim_path_llh_to_csv(out_csv_prefix + ".optim_path_llh.csv")
-    inst.optim_path_deriv_to_csv(out_csv_prefix + ".optim_path_deriv.csv")
+#    inst.per_gpcsp_bls_from_opt_to_csv(out_csv_prefix + ".perpcsp_bl_from_opt.csv")
+#    inst.per_gpcsp_llhs_from_opt_to_csv(out_csv_prefix + ".perpcsp_llh_from_opt.csv")
+#    inst.optim_path_bl_to_csv(out_csv_prefix + ".optim_path_bl.csv")
+#    inst.optim_path_llh_to_csv(out_csv_prefix + ".optim_path_llh.csv")
+#    inst.optim_path_deriv_to_csv(out_csv_prefix + ".optim_path_deriv.csv")
 
 
 def pcsp_likelihood_surface(newick_path, fasta_path, out_csv_prefix, tol, max_iter, use_gradients, steps, mmap_path):
