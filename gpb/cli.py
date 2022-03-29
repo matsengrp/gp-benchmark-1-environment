@@ -76,26 +76,37 @@ def template(template_name, settings_json, dest_path, make_paths_absolute, mb):
 @click.option("--max-iter", type=int, default=10)
 @click.option("--per_pcsp_convg", type=bool, default=False)
 @click.option("--use_gradients", type=bool, default=False)
+@click.option("--optim_tol", type=int, default=6)
 @click.option("--mmap-path", type=click.Path(), default="mmap.dat")
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
-def fit(newick_path, fasta_path, out_csv_prefix, tol, max_iter, per_pcsp_convg, use_gradients, mmap_path):
+def fit(newick_path, fasta_path, out_csv_prefix, tol, max_iter, per_pcsp_convg, use_gradients, optim_tol, mmap_path):
     """Fit an SBN using generalized pruning."""
-    ourbito.gp_fit(newick_path, fasta_path, out_csv_prefix, tol, max_iter, per_pcsp_convg, use_gradients, mmap_path)
+    ourbito.gp_fit(newick_path, fasta_path, out_csv_prefix, tol, max_iter, per_pcsp_convg, use_gradients, optim_tol, mmap_path)
 
 
 @cli.command()
 @click.argument("newick_path", required=True, type=click.Path(exists=True))
 @click.argument("fasta_path", required=True, type=click.Path(exists=True))
 @click.argument("out_csv_prefix", required=True, type=click.Path())
-@click.option("--tol", type=float, default=1e-2)
-@click.option("--max-iter", type=int, default=10)
-@click.option("--use_gradients", type=bool, default=False)
 @click.option("--steps", type=int, default=0)
 @click.option("--mmap-path", type=click.Path(), default="mmap.dat")
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
-def pcspsurface(newick_path, fasta_path, out_csv_prefix, tol, max_iter, use_gradients, steps, mmap_path):  
+def pcspsurface(newick_path, fasta_path, out_csv_prefix, steps, mmap_path):  
     """Scan and find per pcsp log likelihood surfaces"""
-    ourbito.pcsp_likelihood_surface(newick_path, fasta_path, out_csv_prefix, tol, max_iter, use_gradients, steps, mmap_path)
+    ourbito.pcsp_likelihood_surface(newick_path, fasta_path, out_csv_prefix, steps, mmap_path)
+
+
+@cli.command()
+@click.argument("newick_path", required=True, type=click.Path(exists=True))
+@click.argument("fasta_path", required=True, type=click.Path(exists=True))
+@click.argument("out_csv_prefix", required=True, type=click.Path())
+@click.option("--use_gradients", type=bool, default=False)
+@click.option("--mmap-path", type=click.Path(), default="mmap.dat")
+@click_config_file.configuration_option(implicit=False, provider=json_provider)
+def trackpaths(newick_path, fasta_path, out_csv_prefix, use_gradients, mmap_path):  
+    """Track branch length optimization path for each PCSP while holding all other PCSPs
+    at their hotstart branch length values"""
+    ourbito.track_optimization_paths(newick_path, fasta_path, out_csv_prefix, use_gradients, mmap_path)
 
 
 @cli.command()
@@ -209,7 +220,7 @@ def pcspoptplot(per_pcsp_likelihoods_path, out_path):
 @click.argument("out_path", required=True, type=click.Path())
 def pcspsurfaceplot(per_pcsp_likelihood_surfaces_path, out_path):
     """Plot the per pcsp likelihood surfaces"""
-    gpb.plot.per_pcsp_likelihood_surfaces(
+    gpb.plot.per_pcsp_likelihood_surface(
         per_pcsp_likelihood_surfaces_path, out_path
     )
 
