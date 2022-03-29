@@ -19,9 +19,6 @@
 	"use_gradients": {{use_gradients}}
     },
     "pcspsurface": {
-    	"tol": 0.0001,
-	"max_iter": 100,
-	"use_gradients": {{use_gradients}},
-	"steps": 100 
+	"steps": {{steps}} 
     }
 }
