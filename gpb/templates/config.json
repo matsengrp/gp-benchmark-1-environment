@@ -19,6 +19,7 @@
 	"use_gradients": {{use_gradients}}
     },
     "pcspsurface": {
-	"steps": {{steps}} 
+	"steps": {{steps}},
+	"hotstart": {{hotstart}}
     }
 }

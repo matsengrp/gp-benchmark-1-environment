@@ -30,15 +30,20 @@ def gp_fit(newick_path, fasta_path, out_csv_prefix, tol, max_iter, per_pcsp_conv
 #    inst.optim_path_deriv_to_csv(out_csv_prefix + ".optim_path_deriv.csv")
 
 
-def pcsp_likelihood_surface(newick_path, fasta_path, out_csv_prefix, steps, mmap_path):
+def pcsp_likelihood_surface(newick_path, fasta_path, out_csv_prefix, steps, hotstart, mmap_path):
     """Get the per PCSP log likelihood surfaces when holding all other PCSPs at hotstart branch length"""
     inst = bito.gp_instance(mmap_path)
     inst.read_fasta_file(fasta_path)
     inst.read_newick_file(newick_path)
     inst.make_engine()
     inst.print_status()
-    inst.hot_start_branch_lengths()
-    inst.branch_lengths_to_csv(out_csv_prefix + ".bl.afterhotstart.csv")
+
+    if hotstart:
+        inst.hot_start_branch_lengths()
+    else:
+        inst.estimate_branch_lengths(tol = 0.0001, max_iter = 100, quiet = False, per_pcsp_convg = 0, optim_tol = 10)
+
+    inst.branch_lengths_to_csv(out_csv_prefix + ".bl.baseline.csv")
     inst.scan_pcsp_likelihoods(steps)
     inst.per_gpcsp_llh_surfaces_to_csv(out_csv_prefix + ".perpcsp_llh_surface.csv")
     

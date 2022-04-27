@@ -40,6 +40,33 @@ def per_pcsp_likelihoods_from_opt_plot(per_pcsp_likelihoods_path, out_path):
     plot.save(filename = out_path)
 
 
+def per_pcsp_likelihood_surfaces(surface_path, out_path):
+
+    colnames = ['pcsp', 'branch_length', 'llh']
+    df = pd.read_csv(surface_path, header = None, names = colnames)
+
+    pcsps = pd.unique(df['pcsp'])
+
+    plot_list = []
+
+    for pcsp in pcsps:
+        surface = df.loc[df.pcsp == pcsp]
+
+        plot = (
+            p9.ggplot(surface,
+                      p9.aes(x='branch_length', y = 'llh'))
+            + p9.geom_line()
+            + p9.xlab('branch_length')
+            + p9.ylab('per pcsp marginal log likelihood')
+            + p9.ggtitle(pcsp)
+            + p9.theme(plot_title = p9.element_text(size = 6))
+        )
+        
+        plot_list.append(plot)
+
+    p9.save_as_pdf_pages(plot_list, filename = out_path)
+
+
 def per_pcsp_likelihood_surfaces_by_opt(nograd_surf_path, nograd_track_path, grad_surf_path, grad_track_path, out_path):
 
     colnames = ['gpcsp', 'branch_length', 'llh']
