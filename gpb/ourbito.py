@@ -7,15 +7,19 @@ import os
 import pandas as pd
 from scipy.special import logsumexp, softmax
 
-
-def gp_fit(newick_path, fasta_path, out_csv_prefix, tol, max_iter, per_pcsp_convg, use_gradients, optim_tol, mmap_path):
-    """Fit an SBN via GP."""
+def make_gp_instance(newick_path, fasta_path, use_gradients,  mmap_path):
     inst = bito.gp_instance(mmap_path)
     inst.read_fasta_file(fasta_path)
     inst.read_newick_file(newick_path)
     inst.use_gradient_optimization(use_gradients)
     inst.make_engine()
     inst.print_status()
+    return inst
+
+
+def gp_fit(newick_path, fasta_path, out_csv_prefix, tol, max_iter, per_pcsp_convg, use_gradients, optim_tol, mmap_path):
+    """Fit an SBN via GP."""
+    inst = make_gp_instance(newick_path, fasta_path, use_gradients, mmap_path)
     inst.estimate_branch_lengths(tol, max_iter, quiet = False, per_pcsp_convg = per_pcsp_convg, optim_tol = optim_tol)
     inst.calculate_hybrid_marginals()
     inst.estimate_sbn_parameters() 
@@ -23,20 +27,11 @@ def gp_fit(newick_path, fasta_path, out_csv_prefix, tol, max_iter, per_pcsp_conv
     inst.branch_lengths_to_csv(out_csv_prefix + ".bl.csv")
     inst.sbn_prior_to_csv(out_csv_prefix + ".prior.csv")
     inst.per_gpcsp_llhs_to_csv(out_csv_prefix + ".perpcsp.csv")
-#    inst.per_gpcsp_bls_from_opt_to_csv(out_csv_prefix + ".perpcsp_bl_from_opt.csv")
-#    inst.per_gpcsp_llhs_from_opt_to_csv(out_csv_prefix + ".perpcsp_llh_from_opt.csv")
-#    inst.optim_path_bl_to_csv(out_csv_prefix + ".optim_path_bl.csv")
-#    inst.optim_path_llh_to_csv(out_csv_prefix + ".optim_path_llh.csv")
-#    inst.optim_path_deriv_to_csv(out_csv_prefix + ".optim_path_deriv.csv")
 
 
 def pcsp_likelihood_surface(newick_path, fasta_path, out_csv_prefix, steps, hotstart, mmap_path):
     """Get the per PCSP log likelihood surfaces when holding all other PCSPs at hotstart branch length"""
-    inst = bito.gp_instance(mmap_path)
-    inst.read_fasta_file(fasta_path)
-    inst.read_newick_file(newick_path)
-    inst.make_engine()
-    inst.print_status()
+    inst = make_gp_instance(newick_path, fasta_path, use_gradients, mmap_path)
 
     if hotstart:
         inst.hot_start_branch_lengths()
@@ -50,12 +45,9 @@ def pcsp_likelihood_surface(newick_path, fasta_path, out_csv_prefix, steps, hots
 
 def track_optimization_paths(newick_path, fasta_path, out_csv_prefix, use_gradients, mmap_path):
     """Tracking optimization path for each PCSP when holding all other PCSPs at hotstart branch length"""
-    inst = bito.gp_instance(mmap_path)
-    inst.read_fasta_file(fasta_path)
-    inst.read_newick_file(newick_path)
-    inst.use_gradient_optimization(use_gradients)
-    inst.hot_start_branch_lengths();
-    inst.track_values_from_optimization();
+    inst = make_gp_instance(newick_path, fasta_path, use_gradients, mmap_path)
+    inst.hot_start_branch_lengths()
+    inst.track_values_from_optimization()
     inst.full_dag_optim_values_to_csv(out_csv_prefix + ".tracked_bl_correction.csv")
     inst.optim_path_bl_to_csv(out_csv_prefix + ".optim_path_bl_from_track.csv")
     inst.optim_path_llh_to_csv(out_csv_prefix + ".optim_path_llh_from_track.csv")
