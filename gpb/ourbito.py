@@ -14,32 +14,36 @@ def make_gp_instance(newick_path, fasta_path, use_gradients,  mmap_path):
     inst.use_gradient_optimization(use_gradients)
     inst.make_engine()
     inst.print_status()
+    inst.dag_summary_statistics()
     return inst
 
 
-def gp_fit(newick_path, fasta_path, out_csv_prefix, tol, max_iter, per_pcsp_convg, use_gradients, optim_tol, mmap_path):
+def gp_fit(newick_path, fasta_path, out_csv_prefix, tol, max_iter, intermediate, use_gradients,  mmap_path):
     """Fit an SBN via GP."""
     inst = make_gp_instance(newick_path, fasta_path, use_gradients, mmap_path)
-    inst.estimate_branch_lengths(tol, max_iter, quiet = False, per_pcsp_convg = per_pcsp_convg, optim_tol = optim_tol)
+    inst.estimate_branch_lengths(tol, max_iter, quiet = False, intermediate = intermediate)
     inst.calculate_hybrid_marginals()
     inst.estimate_sbn_parameters() 
     inst.sbn_parameters_to_csv(out_csv_prefix + ".sbn.csv")
     inst.branch_lengths_to_csv(out_csv_prefix + ".bl.csv")
     inst.sbn_prior_to_csv(out_csv_prefix + ".prior.csv")
-    inst.per_gpcsp_llhs_to_csv(out_csv_prefix + ".perpcsp.csv")
+    inst.per_gpcsp_llhs_to_csv(out_csv_prefix + ".perpcsp_llh.csv")
+    if intermediate:
+        inst.intermediate_bls_to_csv(out_csv_prefix + ".intermediate_bl.csv")
+        inst.intermediate_per_gpcsp_llhs_to_csv(out_csv_prefix + ".intermediate_perpcsp_llh.csv")
 
 
-def pcsp_likelihood_surface(newick_path, fasta_path, out_csv_prefix, steps, hotstart, mmap_path):
+def pcsp_likelihood_surface(newick_path, fasta_path, out_csv_prefix, steps, scale_min, scale_max, hotstart, mmap_path):
     """Get the per PCSP log likelihood surfaces when holding all other PCSPs at hotstart branch length"""
     inst = make_gp_instance(newick_path, fasta_path, use_gradients, mmap_path)
 
     if hotstart:
         inst.hot_start_branch_lengths()
     else:
-        inst.estimate_branch_lengths(tol = 0.0001, max_iter = 100, quiet = False, per_pcsp_convg = 0, optim_tol = 10)
+        inst.estimate_branch_lengths(tol = 0.0001, max_iter = 100, quiet = False, intermediate = False)
 
-    inst.branch_lengths_to_csv(out_csv_prefix + ".bl.baseline.csv")
-    inst.scan_pcsp_likelihoods(steps)
+    inst.branch_lengths_to_csv(out_csv_prefix + ".bl_surface_baseline.csv")
+    inst.get_perpcsp_llh_surfaces(steps, scale_min, scale_max)
     inst.per_gpcsp_llh_surfaces_to_csv(out_csv_prefix + ".perpcsp_llh_surface.csv")
     
 
@@ -47,11 +51,8 @@ def track_optimization_paths(newick_path, fasta_path, out_csv_prefix, use_gradie
     """Tracking optimization path for each PCSP when holding all other PCSPs at hotstart branch length"""
     inst = make_gp_instance(newick_path, fasta_path, use_gradients, mmap_path)
     inst.hot_start_branch_lengths()
-    inst.track_values_from_optimization()
-    inst.full_dag_optim_values_to_csv(out_csv_prefix + ".tracked_bl_correction.csv")
-    inst.optim_path_bl_to_csv(out_csv_prefix + ".optim_path_bl_from_track.csv")
-    inst.optim_path_llh_to_csv(out_csv_prefix + ".optim_path_llh_from_track.csv")
-    inst.optim_path_deriv_to_csv(out_csv_prefix + ".optim_path_deriv_from_track.csv")
+    inst.track_optimization_values()
+    inst.tracked_optim_values_to_csv(out_csv_prefix + ".tracked_bl_correction.csv")
 
 
 def simple_average(newick_path, out_csv_prefix):
