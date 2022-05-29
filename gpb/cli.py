@@ -7,6 +7,7 @@ import click_config_file
 import gpb.compare
 import gpb.outside
 import gpb.plot
+import gpb.coverage
 import gpb.ourbito as ourbito
 import gpb.templating as templating
 
@@ -72,16 +73,15 @@ def template(template_name, settings_json, dest_path, make_paths_absolute, mb):
 @click.argument("newick_path", required=True, type=click.Path(exists=True))
 @click.argument("fasta_path", required=True, type=click.Path(exists=True))
 @click.argument("out_csv_prefix", required=True, type=click.Path())
-@click.option("--tol", type=float, default=1e-2)
+@click.option("--tol", type=float, default=1e-3)
 @click.option("--max-iter", type=int, default=10)
-@click.option("--per_pcsp_convg", type=bool, default=False)
+@click.option("--intermediate", type=bool, default=False)
 @click.option("--use_gradients", type=bool, default=False)
-@click.option("--optim_tol", type=int, default=10)
 @click.option("--mmap-path", type=click.Path(), default="mmap.dat")
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
-def fit(newick_path, fasta_path, out_csv_prefix, tol, max_iter, per_pcsp_convg, use_gradients, optim_tol, mmap_path):
+def fit(newick_path, fasta_path, out_csv_prefix, tol, max_iter, intermediate, use_gradients, mmap_path):
     """Fit an SBN using generalized pruning."""
-    ourbito.gp_fit(newick_path, fasta_path, out_csv_prefix, tol, max_iter, per_pcsp_convg, use_gradients, optim_tol, mmap_path)
+    ourbito.gp_fit(newick_path, fasta_path, out_csv_prefix, tol, max_iter, intermediate, use_gradients, mmap_path)
 
 
 @cli.command()
@@ -89,12 +89,14 @@ def fit(newick_path, fasta_path, out_csv_prefix, tol, max_iter, per_pcsp_convg, 
 @click.argument("fasta_path", required=True, type=click.Path(exists=True))
 @click.argument("out_csv_prefix", required=True, type=click.Path())
 @click.option("--steps", type=int, default=0)
+@click.option("--scale-min", type=float, default=1e-3)
+@click.option("--scale-max", type=float, default=3)
 @click.option("--hotstart", type=bool, default=True)
 @click.option("--mmap-path", type=click.Path(), default="mmap.dat")
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
 def pcspsurface(newick_path, fasta_path, out_csv_prefix, steps, hotstart, mmap_path):  
     """Scan and find per pcsp log likelihood surfaces"""
-    ourbito.pcsp_likelihood_surface(newick_path, fasta_path, out_csv_prefix, steps, hotstart, mmap_path)
+    ourbito.pcsp_likelihood_surface(newick_path, fasta_path, out_csv_prefix, steps,scale_min, scale_max,  hotstart, mmap_path)
 
 
 @cli.command()
@@ -237,6 +239,29 @@ def pcsptrackplot(nograd_surf_path, nograd_track_path, grad_surf_path, grad_trac
     gpb.plot.per_pcsp_likelihood_surfaces_by_opt(
         nograd_surf_path, nograd_track_path, grad_surf_path, grad_track_path, out_path
     )
+
+
+@cli.command()
+@click.argument("newick_path", required=True, type=click.Path(exists=True))
+@click.argument("fasta_path", required=True, type=click.Path(exists=True))
+@click.argument("out_csv_prefix", required=True, type=click.Path())
+@click.option("--tol", type=float, default=1e-3)
+@click.option("--max-iter", type=int, default=10)
+@click.option("--mmap-path", type=click.Path(), default="mmap.dat")
+@click_config_file.configuration_option(implicit=False, provider=json_provider)
+def benchmark(newick_path, fasta_path, out_csv_prefix, mmap_path, tol, max_iter):
+    """Benchmark GP benchmark estimates with MrBayes run"""
+    gpb.coverage.run_benchmark(
+        newick_path, fasta_path, out_csv_prefix, tol, max_iter, mmap_path
+    )
+
+
+@cli.command()
+@click.argument("datapath", required=True, type=click.Path(exists=True))
+@click_config_file.configuration_option(implicit=False, provider=json_provider)
+def coverage(datapath):
+    """Get coverage on GP benchmark"""
+    gpb.coverage.run_coverage(datapath) 
 
 if __name__ == "__main__":
     cli()  # pylint: disable=no-value-for-parameter
