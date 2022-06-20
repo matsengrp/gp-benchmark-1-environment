@@ -18,17 +18,17 @@ def make_gp_instance(newick_path, fasta_path, use_gradients,  mmap_path):
     return inst
 
 
-def gp_fit(newick_path, fasta_path, out_csv_prefix, tol, max_iter, intermediate, use_gradients,  mmap_path):
+def gp_fit(newick_path, fasta_path, out_csv_prefix, tol, max_iter, track_intermediate_iterations, use_gradients,  mmap_path):
     """Fit an SBN via GP."""
     inst = make_gp_instance(newick_path, fasta_path, use_gradients, mmap_path)
-    inst.estimate_branch_lengths(tol, max_iter, quiet = False, intermediate = intermediate)
+    inst.estimate_branch_lengths(tol, max_iter, quiet = False, track_intermediate_iterations = track_intermediate_iterations)
     inst.calculate_hybrid_marginals()
     inst.estimate_sbn_parameters() 
     inst.sbn_parameters_to_csv(out_csv_prefix + ".sbn.csv")
     inst.branch_lengths_to_csv(out_csv_prefix + ".bl.csv")
     inst.sbn_prior_to_csv(out_csv_prefix + ".prior.csv")
     inst.per_gpcsp_llhs_to_csv(out_csv_prefix + ".perpcsp_llh.csv")
-    if intermediate:
+    if track_intermediate_iterations:
         inst.intermediate_bls_to_csv(out_csv_prefix + ".intermediate_bl.csv")
         inst.intermediate_per_gpcsp_llhs_to_csv(out_csv_prefix + ".intermediate_perpcsp_llh.csv")
 
@@ -40,7 +40,7 @@ def pcsp_likelihood_surface(newick_path, fasta_path, out_csv_prefix, steps, scal
     if hotstart:
         inst.hot_start_branch_lengths()
     else:
-        inst.estimate_branch_lengths(tol = 0.0001, max_iter = 100, quiet = False, intermediate = False)
+        inst.estimate_branch_lengths(tol = 0.0001, max_iter = 100, quiet = False, track_intermediate_iterations = False)
 
     inst.branch_lengths_to_csv(out_csv_prefix + ".bl_surface_baseline.csv")
     inst.get_perpcsp_llh_surfaces(steps, scale_min, scale_max)
