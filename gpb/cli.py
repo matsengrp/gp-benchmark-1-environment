@@ -75,13 +75,13 @@ def template(template_name, settings_json, dest_path, make_paths_absolute, mb):
 @click.argument("out_csv_prefix", required=True, type=click.Path())
 @click.option("--tol", type=float, default=1e-3)
 @click.option("--max-iter", type=int, default=10)
-@click.option("--intermediate", type=bool, default=False)
+@click.option("--track-intermediate-iterations", type=bool, default=False)
 @click.option("--use_gradients", type=bool, default=False)
 @click.option("--mmap-path", type=click.Path(), default="mmap.dat")
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
-def fit(newick_path, fasta_path, out_csv_prefix, tol, max_iter, intermediate, use_gradients, mmap_path):
+def fit(newick_path, fasta_path, out_csv_prefix, tol, max_iter, track_intermediate_iterations, use_gradients, mmap_path):
     """Fit an SBN using generalized pruning."""
-    ourbito.gp_fit(newick_path, fasta_path, out_csv_prefix, tol, max_iter, intermediate, use_gradients, mmap_path)
+    ourbito.gp_fit(newick_path, fasta_path, out_csv_prefix, tol, max_iter, track_intermediate_iterations, use_gradients, mmap_path)
 
 
 @cli.command()
@@ -258,10 +258,11 @@ def benchmark(newick_path, fasta_path, out_csv_prefix, mmap_path, tol, max_iter)
 
 @cli.command()
 @click.argument("datapath", required=True, type=click.Path(exists=True))
+@click.option("--sample-min", type=int, default=10)
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
-def coverage(datapath):
+def coverage(datapath, sample_min):
     """Get coverage on GP benchmark"""
-    gpb.coverage.run_coverage(datapath) 
+    gpb.coverage.run_coverage(datapath, sample_min) 
 
 if __name__ == "__main__":
     cli()  # pylint: disable=no-value-for-parameter

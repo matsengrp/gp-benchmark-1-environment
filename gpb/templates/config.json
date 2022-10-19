@@ -15,7 +15,7 @@
     "fit": {
         "tol": 1e-4,
         "max_iter": 100,
-	"intermediate": {{intermediate}},
+	"track_intermediate_iterations": {{intermediate}},
 	"use_gradients": {{use_gradients}}
     },
     "pcspsurface": {
