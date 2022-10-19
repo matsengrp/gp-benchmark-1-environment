@@ -44,7 +44,7 @@ def posterior_credible_intervals(inst, gp_df, out_csv_prefix):
 
 
 def estimate_branch_lengths(inst, out_csv_prefix, tol, max_iter):
-    inst.estimate_branch_lengths(tol, max_iter, quiet = False, intermediate = False)
+    inst.estimate_branch_lengths(tol, max_iter, quiet = False, track_intermediate_iterations = False)
     inst.branch_lengths_to_csv(out_csv_prefix + ".gp_bl.csv")
     gp_df = pd.read_csv(out_csv_prefix + ".gp_bl.csv", header = None, names = ['pcsp', 'gp'])
     os.remove(out_csv_prefix + ".gp_bl.csv")
@@ -60,7 +60,8 @@ def run_benchmark(newick_path, fasta_path, out_csv_prefix, tol, max_iter, mmap_p
     time = end - start
     print("GP estimation took ", time, " seconds")
 
-    inst.export_dag_to_json(out_csv_prefix + "_dag.json")
+    # HN: This seems to be taken out of main. Not sure why or if it's needed.
+    # inst.export_dag_to_json(out_csv_prefix + "_dag.json")
     
     posterior_df = posterior_credible_intervals(inst, gp_df, out_csv_prefix)
 
@@ -81,7 +82,7 @@ def run_benchmark(newick_path, fasta_path, out_csv_prefix, tol, max_iter, mmap_p
     plot.save(out_csv_prefix + ".pdf")
 
 
-def run_coverage(datapath):
+def run_coverage(datapath, sample_min):
     files = glob.glob(datapath + "/*.csv")
     dfs = []
 
@@ -96,11 +97,13 @@ def run_coverage(datapath):
     r2.columns = ['dataset', 'corr', 'R-squared']
     r2.to_csv(datapath + "/r2.csv", index = False, float_format = '%.3f')
 
-    sample_min = 10
-    full['gt10'] = np.where(full['samples'] >= sample_min, "> 10 samples", "<= 10 samples")
+    greater_than = " ".join([">", str(sample_min), "samples"])
+    less_than = " ".join(["<=", str(sample_min), "samples"])
 
-    coverage = full.groupby(['dataset', 'gt10', 'coverage']).size().agg(
-        {'count': lambda x: int(x), 'prop': lambda x: x / x.groupby(['dataset', 'gt10']).sum() * 100}
+    full['gtsamplemin'] = np.where(full['samples'] >= sample_min, greater_than, less_than)
+
+    coverage = full.groupby(['dataset', 'gtsamplemin', 'coverage']).size().agg(
+        {'count': lambda x: int(x), 'prop': lambda x: x / x.groupby(['dataset', 'gtsamplemin']).sum() * 100}
         ).unstack(level=0).reset_index()
 
     barplot = (
@@ -108,7 +111,7 @@ def run_coverage(datapath):
         + p9.geom_bar(stat=p9.stat_identity)
         + p9.geom_text(size = 5, position = p9.position_stack(vjust = 0.5),
                     format_string='{:.1f}%')
-        + p9.facet_wrap('gt10')
+        + p9.facet_wrap('gtsamplemin')
         + p9.ylab('PCSP proportion')
         + p9.theme(axis_text_x = p9.element_text(size = 6))
     )
