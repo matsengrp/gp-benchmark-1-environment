@@ -24,6 +24,8 @@
     },
     "benchmark": {
 	"tol": 1e-4,
-	"max_iter": 100
+	"max_iter": 100,
+	"use_gradients": {{use_gradients}},
+	"benchmark_iters": {{benchmark_iters}}
     }
 }

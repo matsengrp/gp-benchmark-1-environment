@@ -43,43 +43,51 @@ def posterior_credible_intervals(inst, gp_df, out_csv_prefix):
     return posterior_df
 
 
-def estimate_branch_lengths(inst, out_csv_prefix, tol, max_iter):
-    inst.estimate_branch_lengths(tol, max_iter, quiet = False, track_intermediate_iterations = False)
-    inst.branch_lengths_to_csv(out_csv_prefix + ".gp_bl.csv")
-    gp_df = pd.read_csv(out_csv_prefix + ".gp_bl.csv", header = None, names = ['pcsp', 'gp'])
-    os.remove(out_csv_prefix + ".gp_bl.csv")
-    return gp_df
+def run_benchmark(newick_path, fasta_path, out_csv_prefix, tol, max_iter, use_gradients, benchmark_iters, mmap_path):
+    build_times = []
+    estimation_times = []
 
+    for i in range(benchmark_iters):
+        start = timeit.default_timer()
 
-def run_benchmark(newick_path, fasta_path, out_csv_prefix, tol, max_iter, mmap_path):
-    start = timeit.default_timer()
-    use_gradients = True
-    inst = make_gp_instance(newick_path, fasta_path, use_gradients, mmap_path)
-    gp_df = estimate_branch_lengths(inst, out_csv_prefix, tol, max_iter)
-    end = timeit.default_timer()
-    time = end - start
-    print("GP estimation took ", time, " seconds")
+        inst = make_gp_instance(newick_path, fasta_path, use_gradients, mmap_path)
+        build_time_end = timeit.default_timer()
 
-    # HN: This seems to be taken out of main. Not sure why or if it's needed.
-    # inst.export_dag_to_json(out_csv_prefix + "_dag.json")
-    
-    posterior_df = posterior_credible_intervals(inst, gp_df, out_csv_prefix)
+        inst.estimate_branch_lengths(tol, max_iter, quiet = False, track_intermediate_iterations = False)
+        estimation_time_end = timeit.default_timer()
+        
+        build_time = build_time_end - start
+        estimation_time = estimation_time_end - build_time_end
 
-    df = posterior_df.merge(gp_df, on = 'pcsp')
-    df['dataset'] = out_csv_prefix
-    df['time'] = time
+        print("Building GP instance took ", build_time, " seconds")
+        print("GP estimation took ", estimation_time, " seconds")
 
-    df['coverage'] = np.where(df['gp'] > df['lb'],
-                             np.where(df['gp'] < df['ub'], 'covered', 'over'),
-                             'under')
-    df.to_csv(out_csv_prefix + ".csv")
+        build_times.append(build_time)
+        estimation_times.append(estimation_time)
 
-    plot = (
-        p9.ggplot(df, p9.aes(x = 'posterior', y = 'gp'))
-        + p9.geom_point()
-        + p9.geom_abline(intercept = 0, slope = 1, color = 'blue')
-    )
-    plot.save(out_csv_prefix + ".pdf")
+        if i == 0:
+            inst.branch_lengths_to_csv(out_csv_prefix + ".gp_bl.csv")
+            gp_df = pd.read_csv(out_csv_prefix + ".gp_bl.csv", header = None, names = ['pcsp', 'gp'])
+            os.remove(out_csv_prefix + ".gp_bl.csv")
+            posterior_df = posterior_credible_intervals(inst, gp_df, out_csv_prefix)
+
+            df = posterior_df.merge(gp_df, on = 'pcsp')
+            df['dataset'] = out_csv_prefix
+
+            df['coverage'] = np.where(df['gp'] > df['lb'],
+                                     np.where(df['gp'] < df['ub'], 'covered', 'over'),
+                                     'under')
+            df.to_csv(out_csv_prefix + ".csv")
+
+            plot = (
+                p9.ggplot(df, p9.aes(x = 'posterior', y = 'gp'))
+                + p9.geom_point()
+                + p9.geom_abline(intercept = 0, slope = 1, color = 'blue')
+            )
+            plot.save(out_csv_prefix + ".pdf")
+
+        timing_df = pd.DataFrame(zip(build_times, estimation_times), columns = ['build_times', 'estimation_times'])
+        timing_df.to_csv(out_csv_prefix + "_timing.csv")
 
 
 def run_coverage(datapath, sample_min):

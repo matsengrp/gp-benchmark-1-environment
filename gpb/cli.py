@@ -247,12 +247,14 @@ def pcsptrackplot(nograd_surf_path, nograd_track_path, grad_surf_path, grad_trac
 @click.argument("out_csv_prefix", required=True, type=click.Path())
 @click.option("--tol", type=float, default=1e-3)
 @click.option("--max-iter", type=int, default=10)
+@click.option("--use-gradients", type=bool, default=False) 
+@click.option("--benchmark-iters", type=int, default=1)
 @click.option("--mmap-path", type=click.Path(), default="mmap.dat")
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
-def benchmark(newick_path, fasta_path, out_csv_prefix, mmap_path, tol, max_iter):
+def benchmark(newick_path, fasta_path, out_csv_prefix, mmap_path, tol,  max_iter, use_gradients, benchmark_iters):
     """Benchmark GP benchmark estimates with MrBayes run"""
     gpb.coverage.run_benchmark(
-        newick_path, fasta_path, out_csv_prefix, tol, max_iter, mmap_path
+        newick_path, fasta_path, out_csv_prefix, tol, max_iter, use_gradients, benchmark_iters, mmap_path
     )
 
 
