@@ -86,8 +86,10 @@ def run_benchmark(newick_path, fasta_path, out_csv_prefix, tol, max_iter, use_gr
             )
             plot.save(out_csv_prefix + ".pdf")
 
-        timing_df = pd.DataFrame(zip(build_times, estimation_times), columns = ['build_times', 'estimation_times'])
-        timing_df.to_csv(out_csv_prefix + "_timing.csv")
+        os.remove(mmap_path)
+
+    timing_df = pd.DataFrame(zip(build_times, estimation_times), columns = ['build_times', 'estimation_times'])
+    timing_df.to_csv(out_csv_prefix + "_timing.csv")
 
 
 def run_coverage(datapath, sample_min):
