@@ -7,7 +7,7 @@ import os
 import pandas as pd
 from scipy.special import logsumexp, softmax
 
-def make_gp_instance(newick_path, fasta_path, use_gradients,  mmap_path):
+def make_gp_instance(newick_path, fasta_path, use_gradients, mmap_path):
     inst = bito.gp_instance(mmap_path)
     inst.read_fasta_file(fasta_path)
     inst.read_newick_file(newick_path)
