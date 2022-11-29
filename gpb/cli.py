@@ -20,6 +20,8 @@ def json_provider(file_path, cmd_name):
             if cmd_name not in config_dict:
                 if "default" in config_dict:
                     return config_dict["default"]
+                if "benchmark" in cmd_name:
+                    return config_dict["benchmark"]
                 # else:
                 raise IOError(
                     f"Could not find a '{cmd_name}' or 'default' section in '{file_path}'"
@@ -242,21 +244,35 @@ def pcsptrackplot(nograd_surf_path, nograd_track_path, grad_surf_path, grad_trac
 
 
 @cli.command()
+@click.argument("unif_newick_path", required=True, type=click.Path(exists=True))
+@click.argument("exp_newick_path", required=True, type=click.Path(exists=True))
+@click.argument("fasta_path", required=True, type=click.Path(exists=True))
+@click.argument("out_csv_prefix", required=True, type=click.Path())
+@click.option("--tol", type=float, default=1e-3)
+@click.option("--max-iter", type=int, default=10)
+@click.option("--use-gradients", type=bool, default=False) 
+@click.option("--mmap-path", type=click.Path(), default="mmap.dat")
+@click_config_file.configuration_option(implicit=False, provider=json_provider)
+def estimationbenchmark(unif_newick_path, exp_newick_path, fasta_path, out_csv_prefix, mmap_path, tol,  max_iter, use_gradients):
+    """Benchmark GP branch length estimates with MrBayes run"""
+    gpb.coverage.run_estimation_benchmark(
+        unif_newick_path, exp_newick_path, fasta_path, out_csv_prefix, tol, max_iter, use_gradients, mmap_path
+    )
+
+@cli.command()
 @click.argument("newick_path", required=True, type=click.Path(exists=True))
 @click.argument("fasta_path", required=True, type=click.Path(exists=True))
 @click.argument("out_csv_prefix", required=True, type=click.Path())
 @click.option("--tol", type=float, default=1e-3)
 @click.option("--max-iter", type=int, default=10)
 @click.option("--use-gradients", type=bool, default=False) 
-@click.option("--benchmark-iters", type=int, default=1)
 @click.option("--mmap-path", type=click.Path(), default="mmap.dat")
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
-def benchmark(newick_path, fasta_path, out_csv_prefix, mmap_path, tol,  max_iter, use_gradients, benchmark_iters):
-    """Benchmark GP benchmark estimates with MrBayes run"""
-    gpb.coverage.run_benchmark(
-        newick_path, fasta_path, out_csv_prefix, tol, max_iter, use_gradients, benchmark_iters, mmap_path
+def timingbenchmark(newick_path, fasta_path, out_csv_prefix, mmap_path, tol,  max_iter, use_gradients):
+    """Benchmark GP runtimes"""
+    gpb.coverage.run_timing_benchmark(
+        newick_path, fasta_path, out_csv_prefix, tol, max_iter, use_gradients, mmap_path
     )
-
 
 @cli.command()
 @click.argument("datapath", required=True, type=click.Path(exists=True))
