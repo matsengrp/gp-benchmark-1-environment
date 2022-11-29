@@ -2,6 +2,19 @@ set -eux
 
 trap "rm -f mmap.dat" EXIT
 
-TREES=rerooted-topologies.noburnin.withbranchlengths.nwk
+UNIFTREES=rerooted-topologies.unif.noburnin.withbranchlengths.nwk
+EXPTREES=rerooted-topologies.exp.noburnin.withbranchlengths.nwk
+UNIQTREES=rerooted-topologies.unif.noburnin.uniq.nwk
 
-gpb benchmark --config {{config_path}} $TREES {{output_prefix}}.fasta {{output_prefix}}.bench
+for i in {1..{{benchmark_iters}}}
+do
+    gpb timingbenchmark --config {{config_path}} $UNIFTREES {{output_prefix}}.fasta {{output_prefix}}.bench
+done
+
+for i in {1..{{benchmark_iters}}}
+do
+    gpb timingbenchmark --config {{config_path}} $UNIQTREES {{output_prefix}}.fasta {{output_prefix}}.bench.nobl
+done
+
+gpb estimationbenchmark --config {{config_path}} $UNIFTREES $EXPTREES {{output_prefix}}.fasta {{output_prefix}}.bench
+
