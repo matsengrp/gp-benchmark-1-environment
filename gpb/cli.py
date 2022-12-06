@@ -279,8 +279,8 @@ def timingbenchmark(newick_path, fasta_path, out_csv_prefix, mmap_path, tol,  ma
 @click.option("--sample-min", type=int, default=10)
 @click_config_file.configuration_option(implicit=False, provider=json_provider)
 def coverage(datapath, sample_min):
-    """Get coverage on GP benchmark"""
-    gpb.coverage.run_coverage(datapath, sample_min) 
+    """Get summary stats on GP benchmark"""
+    gpb.coverage.output_stats(datapath, sample_min) 
 
 if __name__ == "__main__":
     cli()  # pylint: disable=no-value-for-parameter
