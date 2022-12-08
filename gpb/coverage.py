@@ -77,13 +77,6 @@ def run_estimation_benchmark(unif_newick_path, exp_newick_path, fasta_path, out_
                              'under')
     df.to_csv(out_csv_prefix + ".csv")
 
-    plot = (
-        p9.ggplot(df, p9.aes(x = 'unif_posterior', y = 'gp'))
-        + p9.geom_point()
-        + p9.geom_abline(intercept = 0, slope = 1, color = 'blue')
-    )
-    plot.save(out_csv_prefix + ".pdf")
-
 
 def run_timing_benchmark(newick_path, fasta_path, out_csv_prefix, tol, max_iter, use_gradients, mmap_path):
     start = time.time()
@@ -125,17 +118,17 @@ def compile_timing_stats(datapath, uniq = False):
         dfs.append(df)
 
     full = pd.concat(dfs, axis = 0)
-    full['dataset'] = full['dataset'].str.replace(".*.timing*","")
+    full['dataset'] = full['dataset'].str.replace(r'.bench(.*)','', regex = True)
 
-    time_stats = full.groupby(['dataset'])['build_time', 'estimation_time'].aggregate(['mean', 'std']).reset_index()
+    time_stats = full.groupby(['dataset'])[['build_time', 'estimation_time']].aggregate(['mean', 'std']).reset_index()
 
     cols = ['dataset', 'build_mean_' + suff, 'build_std_' + suff, 'estimation_mean_' + suff, 'estimation_std_' + suff]
 
-    times_stats.columns = cols
+    time_stats.columns = cols
     return(time_stats)
 
 
-def convert_pcsp(pcsp_string, input = 'gp', output = 'vbpi', ds = 'ds1'):
+def convert_pcsp(pcsp_string, input = 'vbpi', output = 'gp', ds = 'ds1'):
     gp_taxon_order = {
             'ds1': [1, 24, 10, 22, 25, 7, 11, 16, 20, 18, 12, 4, 17, 6, 8, 13, 9, 3, 14, 19, 21, 5, 2, 23, 26, 27, 15], 
             'ds2': [], 
@@ -189,12 +182,12 @@ def merge_gp_vbpi(datapath, ds):
     vbpi_path = glob.glob(datapath + '/vbpi/*' + ds + '*.csv')[0]
 
     gp = pd.read_csv(gp_path)
-    gp['pcsp_nobar'] = gp.pcsp.str.replace("|", "")
+    gp['pcsp_nobar'] = gp.pcsp.str.replace("|", "", regex = False)
 
     vbpi_cols = ['vbpi_pcsp', 'vbpi']
     vbpi = pd.read_csv(vbpi_path, names = vbpi_cols)
-    vbpi['vbpi_pcsp_nobar'] = vbpi.vbpi_pcsp.str.replace("|", "")
-    vbpi['pcsp_nobar'] = vbpi.vbpi_pcsp_nobar.apply(lambda x: convert_pcsp(x, input = 'gp', output = 'vbpi', ds = ds))
+    vbpi['vbpi_pcsp_nobar'] = vbpi.vbpi_pcsp.str.replace("|", "", regex = False)
+    vbpi['pcsp_nobar'] = vbpi.vbpi_pcsp_nobar.apply(lambda x: convert_pcsp(x, input = 'vbpi', output = 'gp', ds = ds))
 
     merged = gp.merge(vbpi, how = 'outer', on = 'pcsp_nobar')
     merged['dataset'] = ds
@@ -206,18 +199,27 @@ def merge_gp_vbpi(datapath, ds):
     return merged
 
 
-def get_estimation_stats(df, ds, estimate, truth, coverage):
+def get_estimation_stats(df, estimate, truth, coverage, out_prefix):
+    label = df['dataset'].iloc[0]
     corr = df[[truth, estimate]].corr().iloc[0::2, -1].item()
     r2 = corr**2
-    mse = ((df[truth] - df[estimate])**2).mean()
+    mae = (abs(df[truth] - df[estimate])).mean()
     coverage_stat = np.where(df[coverage] == 'covered', 1, 0).mean()
     output = {
-        'dataset': ds,
+        'dataset': label,
         estimate+'_correlation': corr,
         estimate+'_r_squared': r2,
-        estimate+'_mse': mse,
+        estimate+'_mae': mae,
         estimate+'_coverage': coverage_stat
     }
+
+    plot = (
+        p9.ggplot(df, p9.aes(x = truth, y = estimate))
+        + p9.geom_point()
+        + p9.geom_abline(intercept = 0, slope = 1, color = 'blue')
+        + p9.ggtitle(label + ': Correlation = ' + str(corr))
+    )
+    plot.save(out_prefix + ".pdf")
     return output
 
 
@@ -232,19 +234,27 @@ def compile_estimation_stats(datapath, sample_min):
 
     for ds in ds_list:
         df = merge_gp_vbpi(datapath, ds)
-        gp_stats_full.append(get_estimation_stats(df, ds, 'gp', 'unif_posterior', 'gp_coverage'))
-        vbpi_stats_full.append(get_estimation_stats(df, ds, 'vbpi', 'exp_posterior', 'vbpi_coverage'))
 
-        gp_subset = df.loc[df['unif_samples'] >= sample_min]
-        gp_stats_samplesubset.append(get_estimation_stats(gp_subset, 'gp', 'unif_posterior', 'gp_coverage'))
+        gp_df = df.loc[(~df['unif_samples'].isna()) & (~df['gp'].isna())]
+        gp_fulldf_prefix = ds + '_gp_full'
+        gp_stats_full.append(get_estimation_stats(gp_df, 'gp', 'unif_posterior', 'gp_coverage', gp_fulldf_prefix))
 
-        vbpi_subset = df.loc[df['exp_samples'] >= sample_min]
-        vbpi_stats_samplesubset.append(get_estimation_stats(df, ds, 'vbpi', 'exp_posterior', 'vbpi_coverage'))
+        vbpi_df = df.loc[(~df['unif_samples'].isna()) & (~df['vbpi'].isna())]
+        vbpi_fulldf_prefix = ds + '_vbpi_full'
+        vbpi_stats_full.append(get_estimation_stats(vbpi_df,'vbpi', 'exp_posterior', 'vbpi_coverage', vbpi_fulldf_prefix))
+
+        gp_subset = gp_df.loc[gp_df['unif_samples'] >= sample_min]
+        gp_subsetdf_prefix = ds + '_gp_subset'
+        gp_stats_samplesubset.append(get_estimation_stats(gp_subset, 'gp', 'unif_posterior', 'gp_coverage', gp_subsetdf_prefix))
+
+        vbpi_subset = vbpi_df.loc[vbpi_df['exp_samples'] >= sample_min]
+        vbpi_subsetdf_prefix = ds + '_vbpi_subset'
+        vbpi_stats_samplesubset.append(get_estimation_stats(vbpi_subset, 'vbpi', 'exp_posterior', 'vbpi_coverage', vbpi_subsetdf_prefix))
 
     gp_full_stats_df = pd.DataFrame(gp_stats_full)
     vbpi_full_stats_df = pd.DataFrame(vbpi_stats_full)
     full_stats_df = gp_full_stats_df.merge(vbpi_full_stats_df, on = 'dataset')
-    full_stats_df.to_csv(datapath + "/fulldata_summary_stats.csv", index = False, float_format = '%.8f')
+    full_stats_df.to_csv(datapath + "/fulldata_summary_stats.csv", index = False, float_format = '%.5f')
 
     gp_subset_stats_df = pd.DataFrame(gp_stats_samplesubset)
     vbpi_subset_stats_df = pd.DataFrame(vbpi_stats_samplesubset)
@@ -279,5 +289,5 @@ def output_stats(datapath, sample_min):
     timing_uniq = compile_timing_stats(datapath, uniq = True)
 
     timing_stats = timing_full.merge(timing_uniq, on = 'dataset')
-    timing_stats.to_csv(datapath + '/timing_stats.csv')
+    timing_stats.to_csv(datapath + '/timing_stats.csv', index = False, float_format = '%.4f')
 
