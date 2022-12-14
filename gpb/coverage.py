@@ -36,11 +36,16 @@ def rootsplit_adjusted_coverage(df):
         split_count = rootsplit_df.value_counts(['split']).reset_index()
         rootsplit_df['split_count'] = rootsplit_df.groupby(['split'])['gp'].transform(len)
         to_add = rootsplit_df.loc[rootsplit_df.split_count == 1]
+    
 
     df['unif_posterior_root_adjusted'] = np.where(df.rootsplit, df.unif_posterior + to_add.unif_posterior.item(), df.unif_posterior)
     df['unif_lb_root_adjusted'] = np.where(df.rootsplit, df.unif_lb + to_add.unif_lb.item(), df.unif_lb)
     df['unif_ub_root_adjusted'] = np.where(df.rootsplit, df.unif_ub + to_add.unif_ub.item(), df.unif_ub)
     df['gp_root_adjusted'] = np.where(df.rootsplit, df.gp + to_add.gp.item(), df.gp)
+    
+    # Setting the value for the other rootsplit to be zero
+    to_add_pcsp = to_add.pcsp.item()
+    df.loc[df.pcsp == to_add_pcsp, ['unif_posterior_root_adjusted', 'unif_lb_root_adjusted', 'unif_ub_root_adjusted', 'gp_root_adjusted']] = [0,0,0,0]
     
     df['gp_coverage'] = np.where(df.gp_root_adjusted > df.unif_lb_root_adjusted,
                                  np.where(df.gp_root_adjusted < df.unif_ub_root_adjusted,
@@ -252,13 +257,14 @@ def calculate_estimation_stats(df, estimate, truth, coverage, out_prefix):
         method+'_coverage': coverage_stat
     }
 
+    colors = {True: 'red', False: 'black'}
     plot = (
         p9.ggplot(df, p9.aes(x = truth, y = estimate))
-        + p9.geom_point()
+        + p9.geom_point(p9.aes(color = df.rootsplit))
         + p9.geom_abline(intercept = 0, slope = 1, color = 'blue')
-        + p9.ggtitle(label + ': Correlation = ' + str(corr))
-        + p9.xlab('posterior estimate')
-        + p9.ylab(method)
+        + p9.ggtitle(label + ': Correlation = ' + str(round(corr, 4)))
+        + p9.labs(x = 'posterior estimate', y = method, color = 'Rootsplit')
+        + p9.scales.scale_color_manual(values = colors)
     )
     plot.save(out_prefix + ".scatterplot.pdf")
     return output
@@ -273,6 +279,7 @@ def compile_estimation_stats(datapath, sample_min):
 
     gp_stats_samplesubset = []
     vbpi_stats_samplesubset = []
+    vbpi_stats_zoomed = []
 
     for ds in ds_list:
         df = merge_gp_vbpi(datapath, ds)
@@ -293,6 +300,12 @@ def compile_estimation_stats(datapath, sample_min):
         vbpi_subsetdf_prefix = datapath + '/' + ds + '_vbpi_subset'
         vbpi_stats_samplesubset.append(calculate_estimation_stats(vbpi_subset, 'vbpi', 'exp_posterior', 'vbpi_coverage', vbpi_subsetdf_prefix))
 
+        vbpi_zoom_quantile = vbpi_subset.vbpi.quantile(0.95)
+        vbpi_zoomed = vbpi_subset.loc[vbpi_subset['vbpi'] < vbpi_zoom_quantile]
+        vbpi_zoomed_prefix = datapath + '/' + ds + '_vbpi_zoomed'
+        vbpi_stats_zoomed.append(calculate_estimation_stats(vbpi_zoomed, 'vbpi', 'exp_posterior', 'vbpi_coverage', vbpi_zoomed_prefix))
+
+
     gp_full_stats_df = pd.DataFrame(gp_stats_full)
     vbpi_full_stats_df = pd.DataFrame(vbpi_stats_full)
     full_stats_df = gp_full_stats_df.merge(vbpi_full_stats_df, on = 'dataset')
@@ -300,7 +313,8 @@ def compile_estimation_stats(datapath, sample_min):
 
     gp_subset_stats_df = pd.DataFrame(gp_stats_samplesubset)
     vbpi_subset_stats_df = pd.DataFrame(vbpi_stats_samplesubset)
-    subset_stats_df = gp_subset_stats_df.merge(vbpi_subset_stats_df, on = 'dataset')
+    vbpi_zoomed_stats_df = pd.DataFrame(vbpi_stats_zoomed)
+    subset_stats_df = gp_subset_stats_df.merge(vbpi_subset_stats_df, on = 'dataset').merge(vbpi_zoomed_stats_df, on = 'dataset', suffixes = ['','_95'])
     subset_stats_df.to_csv(datapath + "/subsetdata_summary_stats.csv", index = False, float_format = '%.5f')
 
 
