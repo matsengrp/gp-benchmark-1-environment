@@ -300,7 +300,7 @@ def compile_estimation_stats(datapath, sample_min):
         gp_fulldf_prefix = datapath + '/' + ds + '_gp_full'
         gp_stats_full.append(calculate_estimation_stats(gp_df, 'gp_root_adjusted', 'unif_posterior_root_adjusted', 'gp_coverage', gp_fulldf_prefix)[0])
 
-        vbpi_df = df.loc[(~df['unif_samples'].isna()) & (~df['vbpi'].isna())]
+        vbpi_df = df.loc[(~df['exp_samples'].isna()) & (~df['vbpi'].isna())]
         vbpi_fulldf_prefix = datapath + '/' + ds + '_vbpi_full'
         vbpi_stats_full.append(calculate_estimation_stats(vbpi_df,'vbpi', 'exp_posterior', 'vbpi_coverage', vbpi_fulldf_prefix)[0])
 
