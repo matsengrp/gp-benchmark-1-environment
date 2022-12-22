@@ -17,5 +17,6 @@ setup(
         "plotnine",
         "seaborn",
         "seqmagick",
+        "patchworklib",
     ],
 )

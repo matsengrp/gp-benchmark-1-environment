@@ -8,6 +8,7 @@ import timeit
 import numpy as np
 import pandas as pd
 import plotnine as p9
+import patchworklib as pw
 from csv import writer
 from gpb.ourbito import make_gp_instance
 
@@ -244,7 +245,8 @@ def merge_gp_vbpi(datapath, ds):
 def calculate_estimation_stats(df, estimate, truth, coverage, out_prefix):
     """Output correlation, R-squared, MAE, and coverage. Make scatterplot of estimate vs truth"""
     method = estimate.split("_")[0]
-    label = df['dataset'].iloc[0]
+    method_axis_label = np.where(method == 'gp', "Generalized Pruning", "VBPI")
+    label = df['dataset'].iloc[0].upper()
     corr = df[[truth, estimate]].corr().iloc[0::2, -1].item()
     r2 = corr**2
     mae = (abs(df[truth] - df[estimate])).mean()
@@ -258,16 +260,22 @@ def calculate_estimation_stats(df, estimate, truth, coverage, out_prefix):
     }
 
     colors = {True: 'red', False: 'black'}
+    gg_title = label + '\nCorrelation = ' + str(round(corr, 4))
     plot = (
         p9.ggplot(df, p9.aes(x = truth, y = estimate))
-        + p9.geom_point(p9.aes(color = df.rootsplit))
+        + p9.geom_point() # Add p9.aes(color = df.rootsplit) in geom_point for rootsplit differentiation
         + p9.geom_abline(intercept = 0, slope = 1, color = 'blue')
-        + p9.ggtitle(label + ': Correlation = ' + str(round(corr, 4)))
-        + p9.labs(x = 'posterior estimate', y = method, color = 'Rootsplit')
-        + p9.scales.scale_color_manual(values = colors)
+        + p9.labs(title = gg_title, x = 'MrBayes Posterior Mean', y = method_axis_label)
+        + p9.themes.theme(plot_title=p9.themes.element_text(size=20))
     )
     plot.save(out_prefix + ".scatterplot.pdf")
-    return output
+
+    # Outputting patchworklib plot for collating into one fig
+    # removing axis labels for the patchwork output to add super labels
+    # later on
+    pw_plot = pw.load_ggplot(plot + p9.labs(x = '', y = ''), figsize = (6,4)) 
+
+    return output, pw_plot
 
 
 def compile_estimation_stats(datapath, sample_min):
@@ -281,29 +289,39 @@ def compile_estimation_stats(datapath, sample_min):
     vbpi_stats_samplesubset = []
     vbpi_stats_zoomed = []
 
+    gp_plots = []
+    vbpi_plots=[]
+    vbpi_plots_zoomed = []
+
     for ds in ds_list:
         df = merge_gp_vbpi(datapath, ds)
 
         gp_df = df.loc[(~df['unif_samples'].isna()) & (~df['gp'].isna())]
         gp_fulldf_prefix = datapath + '/' + ds + '_gp_full'
-        gp_stats_full.append(calculate_estimation_stats(gp_df, 'gp_root_adjusted', 'unif_posterior_root_adjusted', 'gp_coverage', gp_fulldf_prefix))
+        gp_stats_full.append(calculate_estimation_stats(gp_df, 'gp_root_adjusted', 'unif_posterior_root_adjusted', 'gp_coverage', gp_fulldf_prefix)[0])
 
         vbpi_df = df.loc[(~df['unif_samples'].isna()) & (~df['vbpi'].isna())]
         vbpi_fulldf_prefix = datapath + '/' + ds + '_vbpi_full'
-        vbpi_stats_full.append(calculate_estimation_stats(vbpi_df,'vbpi', 'exp_posterior', 'vbpi_coverage', vbpi_fulldf_prefix))
+        vbpi_stats_full.append(calculate_estimation_stats(vbpi_df,'vbpi', 'exp_posterior', 'vbpi_coverage', vbpi_fulldf_prefix)[0])
 
         gp_subset = gp_df.loc[gp_df['unif_samples'] >= sample_min]
         gp_subsetdf_prefix = datapath + '/' + ds + '_gp_subset'
-        gp_stats_samplesubset.append(calculate_estimation_stats(gp_subset, 'gp_root_adjusted', 'unif_posterior_root_adjusted', 'gp_coverage', gp_subsetdf_prefix))
+        gp_stat, gp_plot = calculate_estimation_stats(gp_subset, 'gp_root_adjusted', 'unif_posterior_root_adjusted', 'gp_coverage', gp_subsetdf_prefix)
+        gp_stats_samplesubset.append(gp_stat)
+        gp_plots.append(gp_plot)
 
         vbpi_subset = vbpi_df.loc[vbpi_df['exp_samples'] >= sample_min]
         vbpi_subsetdf_prefix = datapath + '/' + ds + '_vbpi_subset'
-        vbpi_stats_samplesubset.append(calculate_estimation_stats(vbpi_subset, 'vbpi', 'exp_posterior', 'vbpi_coverage', vbpi_subsetdf_prefix))
+        vbpi_stat, vbpi_plot = calculate_estimation_stats(vbpi_subset, 'vbpi', 'exp_posterior', 'vbpi_coverage', vbpi_subsetdf_prefix)
+        vbpi_stats_samplesubset.append(vbpi_stat)
+        vbpi_plots.append(vbpi_plot)
 
         vbpi_zoom_quantile = vbpi_subset.vbpi.quantile(0.95)
         vbpi_zoomed = vbpi_subset.loc[vbpi_subset['vbpi'] < vbpi_zoom_quantile]
         vbpi_zoomed_prefix = datapath + '/' + ds + '_vbpi_zoomed'
-        vbpi_stats_zoomed.append(calculate_estimation_stats(vbpi_zoomed, 'vbpi', 'exp_posterior', 'vbpi_coverage', vbpi_zoomed_prefix))
+        vbpi_stat_zoomed, vbpi_plot_zoomed = calculate_estimation_stats(vbpi_zoomed, 'vbpi', 'exp_posterior', 'vbpi_coverage', vbpi_zoomed_prefix)
+        vbpi_stats_zoomed.append(vbpi_stat_zoomed)
+        vbpi_plots_zoomed.append(vbpi_plot_zoomed)
 
 
     gp_full_stats_df = pd.DataFrame(gp_stats_full)
@@ -314,8 +332,31 @@ def compile_estimation_stats(datapath, sample_min):
     gp_subset_stats_df = pd.DataFrame(gp_stats_samplesubset)
     vbpi_subset_stats_df = pd.DataFrame(vbpi_stats_samplesubset)
     vbpi_zoomed_stats_df = pd.DataFrame(vbpi_stats_zoomed)
-    subset_stats_df = gp_subset_stats_df.merge(vbpi_subset_stats_df, on = 'dataset').merge(vbpi_zoomed_stats_df, on = 'dataset', suffixes = ['','_95'])
+    subset_stats_df = gp_subset_stats_df.merge(vbpi_subset_stats_df, on = 'dataset').merge(vbpi_zoomed_stats_df, on = 'dataset', suffixes = ['','_no_outliers'])
     subset_stats_df.to_csv(datapath + "/subsetdata_summary_stats.csv", index = False, float_format = '%.5f')
+
+    # Now putting all plots into one figure with patchworklib
+    # We're calling vstack directly instead of using only the "|" and "/" syntax so that we can turn adjust_width to false
+    # We are essentially telling it to vertically stack the first 3 x 2 pairs of plots (called a "Brick") on top of the last single plot
+    # Without adjust_width = False, the last plot will be enlarged to take up a whole row
+    
+    gp_topbrick = (gp_plots[0]|gp_plots[1])/(gp_plots[2]|gp_plots[3])/(gp_plots[4]|gp_plots[5])
+    gp_all = pw.vstack(gp_topbrick, gp_plots[6], direction = "b", adjust_width = False)
+    gp_all.set_supxlabel("MrBayes Posterior Mean")
+    gp_all.set_supylabel("Generalized Pruning")
+    gp_all.savefig(datapath + '/gp_scatterplots.pdf')
+
+    vbpi_topbrick = (vbpi_plots[0]|vbpi_plots[1])/(vbpi_plots[2]|vbpi_plots[3])/(vbpi_plots[4]|vbpi_plots[5])
+    vbpi_all = pw.vstack(vbpi_topbrick, vbpi_plots[6], direction = "b", adjust_width = False)
+    vbpi_all.set_supxlabel("MrBayes Posterior Mean")
+    vbpi_all.set_supylabel("Variational Bayesian Phylogenetic Inference")
+    vbpi_all.savefig(datapath + '/vbpi_scatterplots.pdf')
+
+    vbpi_zoomed_topbrick = (vbpi_plots_zoomed[0]|vbpi_plots_zoomed[1])/(vbpi_plots_zoomed[2]|vbpi_plots_zoomed[3])/(vbpi_plots_zoomed[4]|vbpi_plots_zoomed[5])
+    vbpi_all_zoomed = pw.vstack(vbpi_zoomed_topbrick, vbpi_plots_zoomed[6], direction = "b", adjust_width = False)
+    vbpi_all_zoomed.set_supxlabel("MrBayes Posterior Mean")
+    vbpi_all_zoomed.set_supylabel("Variational Bayesian Phylogenetic Inference")
+    vbpi_all_zoomed.savefig(datapath + "/vbpi_scatterplots_nooutliers.pdf")
 
 
 def output_stats(datapath, sample_min):
