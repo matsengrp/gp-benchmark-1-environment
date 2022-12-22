@@ -3,7 +3,7 @@
     "nexus_alignment_path": "../MrBayes/data/DS{{ds_number}}.n.nex",
     "output_prefix": "ds{{ds_number}}",
     "nchains": 4,
-    "ngen": 10000000,
+    "ngen": 1000000000,
     "burnin_frac": 0.1,
     "samplefreq": 1000,
     "printfreq": 10000,
