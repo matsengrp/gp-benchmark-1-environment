@@ -12,6 +12,29 @@ import patchworklib as pw
 from csv import writer
 from gpb.ourbito import make_gp_instance
 
+gp_taxon_order = {}
+
+def bito_taxon_order_from_newick_file(newick_path):
+    """
+    Determines the order of taxa used by bito based on the first tree in the 
+    file newick_path. The tree is expected to be in newick format with internal
+    and leaf branch lengths plus leaf names only (ete3 format 5). Returned is an
+    ordered list of strings of the taxon names.
+    """
+    with open(newick_path) as the_file:
+        first_tree = the_file.readline()
+        # After dropping all the parantheses, the taxon start either at the start of
+        # the line or after a comma, and end with a colon, but other things also end
+        # with a colon. 
+        parantheses_removed = first_tree.replace("(","").replace(")","")
+        taxon_start_indices = [0]
+        taxon_start_indices.extend([j+1 for j in range(len(parantheses_removed)) if parantheses_removed[j]==","])
+        taxon_end_indices = [j+parantheses_removed[j:].index(":") for j in taxon_start_indices]
+        taxon_order = [ parantheses_removed[start:end] for start, end in zip(taxon_start_indices, taxon_end_indices)  ]
+        int_taxon_order = [int(x) for x in taxon_order]
+    return int_taxon_order
+
+
 def is_rootsplit(pcsp):
     """Determine whether a "pretty" pcsp is a rootsplit"""
     try:
@@ -94,6 +117,8 @@ def posterior_credible_intervals(inst, gp_df, prefix):
 
 def run_estimation_benchmark(unif_newick_path, exp_newick_path, fasta_path, out_csv_prefix, tol, max_iter, use_gradients, mmap_path):
     """Run GP estimation benchmark to fit branch lengths and output results to compare against MrBayes"""
+    gp_taxon_order[out_csv_prefix[0:3]] = bito_taxon_order_from_newick_file(unif_newick_path)
+
     inst = make_gp_instance(unif_newick_path, fasta_path, use_gradients, mmap_path)
 
     inst.estimate_branch_lengths(tol, max_iter, quiet = False, track_intermediate_iterations = False)
@@ -168,16 +193,20 @@ def compile_timing_stats(datapath, uniq = False):
 
 def convert_pcsp(pcsp_string, input = 'vbpi', output = 'gp', ds = 'ds1'):
     """For PCSP order conversions between GP and VBPI"""
-    gp_taxon_order = {
-        'ds1': [1, 24, 10, 22, 25, 7, 11, 16, 20, 18, 12, 4, 17, 6, 8, 13, 9, 3, 14, 19, 21, 5, 2, 23, 26, 27, 15], 
-        'ds2': [], 
-        'ds3': [1, 31, 14, 2, 34, 8, 10, 35, 4, 12, 15, 30, 32, 19, 3, 11, 18, 13, 16, 9, 36, 33, 20, 23, 25, 26, 27, 28, 24, 21, 22, 29, 5, 17, 6, 7], 
-        'ds4': [1, 4, 11, 10, 37, 22, 9, 14, 36, 41, 17, 31, 32, 15, 16, 39, 33, 6, 2, 23, 13, 7, 18, 27, 28, 19, 20, 3, 35, 21, 29, 26, 40, 30, 38, 12, 24, 34, 5, 25, 8], 
-        'ds5': [1, 10, 39, 36, 5, 27, 45, 35, 24, 13, 34, 47, 48, 12, 33, 38, 30, 4, 43, 14, 49, 46, 20, 42, 22, 28, 32, 11, 15, 50, 8, 40, 7, 25, 17, 6, 23, 9, 31, 16, 21, 26, 29, 37, 41, 44, 18, 19, 2, 3], 
-        'ds6': [1, 46, 10, 38, 47, 9, 11, 28, 29, 37, 12, 25, 36, 41, 7, 8, 13, 14, 3, 22, 23, 31, 48, 16, 42, 17, 43, 19, 26, 27, 18, 32, 44, 4, 2, 20, 5, 35, 21, 24, 34, 33, 45, 39, 40, 15, 30, 49, 50, 6], 
-        'ds7': [1, 53, 20, 2, 56, 8, 16, 4, 57, 18, 21, 52, 54, 25, 3, 10, 11, 9, 14, 15, 12, 13, 19, 22, 58, 59, 26, 29, 27, 28, 32, 33, 43, 44, 30, 31, 47, 48, 49, 50, 45, 46, 34, 35, 36, 37, 38, 39, 40, 42, 41, 51, 5, 55, 23, 17, 24, 6, 7], 
-        'ds8': [1, 17, 18, 19, 32, 33, 34, 51, 37, 7, 15, 60, 61, 11, 12, 16, 50, 3, 27, 29, 58, 59, 30, 31, 28, 13, 8, 35, 39, 40, 44, 45, 63, 64, 55, 62, 9, 38, 54, 14, 2, 36, 20, 25, 26, 56, 57, 21, 23, 22, 24, 47, 48, 49, 52, 53, 42, 43, 46, 10, 6, 41, 5, 4]
-    }
+    ## Added a function to get the gp taxon order when running gp
+    ## If not running the full benchmark, we have the taxon order hardcoded here
+    if not ('gp_taxon_order' in globals()):
+        gp_taxon_order = {
+            'ds1': [1, 24, 10, 22, 25, 7, 11, 16, 20, 18, 12, 4, 13, 9, 3, 14, 2, 23, 26, 5, 21, 19, 17, 6, 8, 27, 15], 
+            'ds2': [],
+            'ds3': [1, 31, 14, 2, 34, 8, 10, 35, 4, 12, 15, 30, 32, 19, 3, 11, 18, 13, 16, 9, 36, 33, 20, 23, 25, 26, 27, 28, 24, 21, 22, 29, 5, 17, 6, 7], 
+            'ds4': [1, 4, 11, 10, 22, 37, 9, 14, 36, 41, 17, 31, 32, 15, 16, 39, 33, 6, 2, 23, 13, 7, 18, 27, 28, 19, 20, 3, 35, 21, 29, 26, 40, 30, 38, 25, 24, 34, 5, 12, 8], 
+            'ds5': [1, 10, 39, 36, 5, 27, 45, 35, 24, 13, 34, 47, 48, 12, 33, 38, 30, 4, 43, 11, 15, 50, 8, 25, 40, 7, 14, 49, 20, 42, 22, 28, 46, 17, 6, 32, 31, 23, 9, 16, 21, 26, 29, 37, 41, 44, 18, 19, 2, 3], 
+            'ds6': [1, 46, 10, 38, 47, 9, 13, 14, 22, 3, 23, 31, 48, 16, 42, 17, 43, 19, 26, 27, 18, 32, 4, 44, 20, 2, 5, 35, 21, 24, 34, 33, 45, 39, 40, 11, 28, 29, 37, 12, 25, 36, 41, 7, 8, 15, 30, 49, 50, 6],
+            'ds7': [1, 53, 20, 2, 56, 8, 16, 4, 57, 18, 21, 52, 54, 25, 3, 10, 11, 9, 12, 13, 15, 14, 19, 22, 58, 59, 26, 29, 28, 27, 32, 33, 43, 44, 30, 31, 47, 48, 49, 50, 45, 46, 34, 35, 36, 37, 38, 39, 40, 42, 41, 51, 5, 55, 23, 17, 24, 6, 7], 
+            'ds8': [1, 17, 18, 19, 37, 51, 32, 33, 34, 7, 15, 60, 61, 36, 11, 12, 16, 50, 3, 27, 29, 58, 59, 30, 31, 28, 13, 8, 35, 39, 40, 44, 45, 63, 64, 55, 62, 9, 38, 14, 2, 54, 20, 25, 26, 56, 57, 21, 22, 23, 24, 47, 52, 53, 48, 49, 42, 43, 46, 10, 6, 41, 5, 4] 
+        }
+
     taxon_count = {ds: len(gp_taxon_order[ds]) for ds in gp_taxon_order}
     rimu_taxon_order = {ds: list(range(1, taxon_count[ds] + 1)) for ds in taxon_count}        
     vbpi_taxon_order = {
