@@ -1,7 +1,5 @@
 # gp-benchmark-1-environment
 
-[![Docker Repository on Quay](https://quay.io/repository/matsengrp/gp-benchmark-1-environment/status "Docker Repository on Quay")](https://quay.io/repository/matsengrp/gp-benchmark-1-environment)
-
 ## Dependencies
 
 We assume that this will be run in the [bito](https://github.com/phylovi/bito) conda environment.
